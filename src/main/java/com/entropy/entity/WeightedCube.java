@@ -80,6 +80,11 @@ public class WeightedCube extends LivingEntity {
 
     @Override
     public boolean damage(DamageSource source, float amount) {
+        for (String s : GatewayGunMod.cubeKills) {
+            if (s.equals(source.getName())) {
+                kill();
+            }
+        }
         return false;
     }
 }

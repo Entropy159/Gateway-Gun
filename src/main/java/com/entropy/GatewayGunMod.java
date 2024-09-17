@@ -64,6 +64,7 @@ public class GatewayGunMod implements ModInitializer {
     public static final double overlayOffset = 0.001;
     public static double grabDistance = 3;
     public static final float cubeSize = 0.9F;
+    public static List<String> cubeKills = List.of("lava", "onFire", "inFire", "outOfWorld");
 
     public static final GatewayGun GATEWAY_GUN = new GatewayGun();
     public static final GatewayCore GATEWAY_CORE = new GatewayCore();
