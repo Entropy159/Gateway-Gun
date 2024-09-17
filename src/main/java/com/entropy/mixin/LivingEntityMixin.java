@@ -17,6 +17,6 @@ public abstract class LivingEntityMixin extends Entity {
 
     @ModifyVariable(method = "travel", at = @At("STORE"), ordinal = 1)
     public float airResistance(float value) {
-        return isOnGround() && value == 0.91F ? value : 1 - GatewayRecord.get().airResistance / 1000F;
+        return !isOnGround() && value == 0.91F ? 1 - GatewayRecord.get().airResistance / 1000F : value;
     }
 }
