@@ -1,0 +1,32 @@
+{
+  "item.gatewaygun.gatewaygun": "Gateway Gun",
+  "item.gatewaygun.gatewaygun_desc": "Entropy Corps Handheld Quantum (ECHQ) Gateway Gun",
+  "item.gatewaygun.gatewaycore": "Gateway Core",
+
+  "block.gatewaygun.gategrid": "Gategrid",
+  "block.gatewaygun.gategrid_desc": "Entropy Corps Quantum Gateway Control Grid",
+
+  "entity.gatewaygun.weighted_cube": "Weighted Cube",
+  
+  "subtitles.gatewaygun.gateway1_shoot": "Shot primary gateway",
+  "subtitles.gatewaygun.gateway2_shoot": "Shot secondary gateway",
+  "subtitles.gatewaygun.gateway_open": "Gateway opened",
+  "subtitles.gatewaygun.gateway_close": "Gateway closed",
+  "subtitles.gatewaygun.grab_start": "Grabbed Entity",
+  "subtitles.gatewaygun.grab_loop": "Entity grabbing",
+  "subtitles.gatewaygun.grab_stop": "Released Entity",
+
+  "key.gatewaygun.cleargateways": "Clear Gateways",
+  "key.gatewaygun.modifycore": "Swap Gateway Core",
+  "key.gatewaygun.grabentity": "Grab Entity",
+
+  "category.gatewaygun": "Gateway Gun",
+
+  "gatewaygun.limit_allowed_blocks": "Only works on these blocks:",
+  "gatewaygun.item_group": "Gateway Gun",
+  "gatewaygun.transform_gravity": "Gravity Transform Enabled",
+
+  "fail.nocore": "You need to be holding a Gateway Core for this command",
+  "fail.badsize": "Size cannot be less than 1",
+  "fail.badcolor": "Color must be hex format (e.g. ffffff or ffd700)"
+}

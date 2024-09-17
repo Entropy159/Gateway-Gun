@@ -1,0 +1,33 @@
+    {
+      "gateway1_shoot": {
+	      "subtitle": "subtitles.gatewaygun.gateway1_shoot",
+
+        "sounds": [
+          "gatewaygun:gateway1_shoot"
+        ]
+      }, 
+	  "gateway2_shoot": {
+	      "subtitle": "subtitles.gatewaygun.gateway2_shoot",
+
+        "sounds": [
+          "gatewaygun:gateway2_shoot"
+        ]
+      }, 
+	  "gateway_open": {
+	      "subtitle": "subtitles.gatewaygun.gateway_open",
+
+        "sounds": [
+          "gatewaygun:gateway_open1",
+		  "gatewaygun:gateway_open2",
+		  "gatewaygun:gateway_open3"
+        ]
+      },
+	  "gateway_close": {
+	      "subtitle": "subtitles.gatewaygun.gateway_close",
+
+        "sounds": [
+          "gatewaygun:gateway_close1",
+		  "gatewaygun:gateway_close2"
+        ]
+      }
+	}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "gatewaygun",
+  "version": "${version}",
+  "name": "Gateway Gun",
+  "description": "An edit of the Immersive Portals Gun mod.",
+  "authors": ["Entropy159", "MeowMC" ,"qouteall"],
+  "contact": {
+    "Github": "https://github.com/MeowMC/PortalGun"
+  },
+  "license": "Apache License 2.0",
+  "environment": "*",
+  "icon": "assets/gatewaygun/icon.png",
+  "entrypoints": {
+    "client": [
+      "com.entropy.client.GatewayGunClient"
+    ],
+    "main": [
+      "com.entropy.GatewayGunMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.8.0",
+    "fabric": "*",
+    "minecraft": "1.20.4",
+    "immersive_portals": "*",
+    "geckolib": "*"
+  }
+}

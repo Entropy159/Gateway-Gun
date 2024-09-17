@@ -1,0 +1,15 @@
+{
+  "item.gatewaygun.gatewaygun": "Gateway Gun",
+  "item.gatewaygun.gatewaygun_desc": "Entropy Corps Handheld Quantum (ECHQ) Gateway Gun",
+  "item.gatewaygun.gatewaycore": "Gateway Core",
+  
+  "subtitles.gatewaygun.gateway1_shoot": "Shot primary gateway",
+  "subtitles.gatewaygun.gateway2_shoot": "Shot secondary gateway",
+  "subtitles.gatewaygun.gateway_open": "Gateway opened",
+  "subtitles.gatewaygun.gateway_close": "Gateway closed",
+  "key.gatewaygun.cleargateways": "Clear Gateways",
+  "category.gatewaygun": "Gateway Gun",
+  "gatewaygun.limit_allowed_blocks": "Only works on these blocks:",
+  "gatewaygun.item_group": "Gateway Gun",
+  "gatewaygun.transform_gravity": "Gravity Transform Enabled"
+}

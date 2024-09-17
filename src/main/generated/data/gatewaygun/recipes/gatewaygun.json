@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:gilded_blackstone"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    " G ",
+    "QRQ",
+    " B "
+  ],
+  "result": {
+    "item": "gatewaygun:gatewaygun"
+  }
+}

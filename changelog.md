@@ -1,0 +1,1 @@
+possibly fix compat issue with cc:tweaked when maxEnergy is 0

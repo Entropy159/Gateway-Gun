@@ -1,0 +1,18 @@
+{
+  "parent": "builtin/entity",
+  "texture_size": [
+    16,
+    16
+  ],
+	"display": {
+		"ground": {
+			"scale": [2, 2, 2]
+		},
+		"gui": {
+			"scale": [2, 2, 2]
+		},
+		"fixed": {
+			"scale": [2, 2, 2]
+		}
+	}
+}

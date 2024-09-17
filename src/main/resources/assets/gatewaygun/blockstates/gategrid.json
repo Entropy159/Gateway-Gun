@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "gatewaygun:block/gategrid"
+    },
+    "facing=east": {
+      "model": "gatewaygun:block/gategrid",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "gatewaygun:block/gategrid",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "gatewaygun:block/gategrid",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "gatewaygun:block/gategrid",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "gatewaygun:block/gategrid",
+      "x": 90
+    }
+  }
+}

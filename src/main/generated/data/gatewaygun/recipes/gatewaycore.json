@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "QRQ",
+    "RNR",
+    "QRQ"
+  ],
+  "result": {
+    "item": "gatewaygun:gatewaycore"
+  }
+}

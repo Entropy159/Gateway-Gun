@@ -1,0 +1,3 @@
+accessWidener   v2  named
+accessible class net/minecraft/client/render/RenderPhase$ShaderProgram
+accessible field net/minecraft/entity/Entity EMPTY_STACK_LIST Ljava/util/List;
