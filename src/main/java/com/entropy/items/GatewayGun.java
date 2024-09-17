@@ -4,7 +4,7 @@ import com.entropy.CoreData;
 import com.entropy.GatewayGunMod;
 import com.entropy.GatewayRecord;
 import com.entropy.client.renderer.GatewayGunRenderer;
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 import com.entropy.misc.GatewayGunUtils;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.block.BlockState;

@@ -3,7 +3,7 @@ package com.entropy.misc;
 import com.entropy.CoreData;
 import com.entropy.GatewayGunMod;
 import com.entropy.GatewayRecord;
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;

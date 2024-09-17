@@ -1,6 +1,6 @@
 package com.entropy.client.renderer.models;
 
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;

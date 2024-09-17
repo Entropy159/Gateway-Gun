@@ -6,6 +6,7 @@ import com.entropy.GatewayRecord;
 
 import com.entropy.items.GatewayCore;
 import com.entropy.items.GatewayGun;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.ItemCooldownManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -86,7 +87,7 @@ public class RemoteCallables {
         ItemStack gunStack = player.getStackInHand(Hand.MAIN_HAND);
         if (gunStack.getItem() instanceof GatewayGun) {
             CoreData data = CoreData.fromTag(gunStack.getOrCreateNbt(), false);
-            if (data.grabbedEntityId == null && uuid != null && data.pickup) {
+            if (data.grabbedEntityId == null && uuid != null && data.hasCore && data.pickup) {
                 data.grabbedEntityId = uuid;
                 gunStack.setNbt(data.toTag());
                 player.getWorld().playSound(null, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, GatewayGunMod.GRAB_START_EVENT, SoundCategory.PLAYERS, 1.0F, 1.0F);

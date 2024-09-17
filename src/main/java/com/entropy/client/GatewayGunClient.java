@@ -5,7 +5,7 @@ import com.entropy.client.renderer.GatewayEntityRenderer;
 import com.entropy.client.renderer.GatewayShaders;
 import com.entropy.client.renderer.WeightedCubeRenderer;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 
 import com.entropy.entity.WeightedCube;
 import com.entropy.sound.GrabLoopSound;
@@ -37,7 +37,8 @@ import qouteall.q_misc_util.api.McRemoteProcedureCall;
 public class GatewayGunClient implements ClientModInitializer {
     public static final EntityModelLayer OVERLAY_MODEL_LAYER =
             new EntityModelLayer(id("gateway_overlay"), "main");
-    public static final EntityModelLayer WEIGHTED_CUBE_LAYER = new EntityModelLayer(id("weighted_cube_layer"), "main");
+
+    public int airResistance = 90;
 
     @Override
     public void onInitializeClient() {

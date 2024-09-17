@@ -26,6 +26,8 @@
   "gatewaygun.item_group": "Gateway Gun",
   "gatewaygun.transform_gravity": "Gravity Transform Enabled",
 
+  "gamerule.airResistance": "Air Resistance",
+
   "fail.nocore": "You need to be holding a Gateway Core for this command",
   "fail.badsize": "Size cannot be less than 1",
   "fail.badcolor": "Color must be hex format (e.g. ffffff or ffd700)"

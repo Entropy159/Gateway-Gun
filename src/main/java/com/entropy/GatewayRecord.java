@@ -108,9 +108,11 @@ public class GatewayRecord extends PersistentState {
     }
 
     public final Map<GatewayID, GatewayInfo> data;
+    public int airResistance;
 
-    public GatewayRecord(Map<GatewayID, GatewayInfo> data) {
+    public GatewayRecord(Map<GatewayID, GatewayInfo> data, int resistance) {
         this.data = data;
+        this.airResistance = resistance;
     }
 
     @SuppressWarnings("deprecation")
@@ -121,7 +123,7 @@ public class GatewayRecord extends PersistentState {
                 new PersistentState.Type<>(
                         () -> {
                             GatewayGunMod.LOGGER.info("Gateway record initialized ");
-                            return new GatewayRecord(new HashMap<>());
+                            return new GatewayRecord(new HashMap<>(), 90);
                         },
                         GatewayRecord::load,
                         null
@@ -141,6 +143,8 @@ public class GatewayRecord extends PersistentState {
             dataTag.add(entryTag);
         });
 
+        compoundTag.putInt("airResistance", airResistance);
+
         compoundTag.put("data", dataTag);
 
         return compoundTag;
@@ -157,10 +161,10 @@ public class GatewayRecord extends PersistentState {
                             entryTag -> GatewayInfo.fromTag(entryTag.getCompound("value"))
                     ));
 
-            return new GatewayRecord(data);
+            return new GatewayRecord(data, compoundTag.getInt("airResistance"));
         } catch (Exception e) {
             GatewayGunMod.LOGGER.error("Failed to deserialize gateway info", e);
-            return new GatewayRecord(new HashMap<>());
+            return new GatewayRecord(new HashMap<>(), 90);
         }
     }
 }

@@ -12,6 +12,9 @@
   "environment": "*",
   "icon": "assets/gatewaygun/icon.png",
   "accessWidener": "gatewaygun.accesswidener",
+  "mixins": [
+    "gatewaygun.mixins.json"
+  ],
   "entrypoints": {
     "fabric-datagen": [
       "com.entropy.datagen.GatewayGunDataGen"

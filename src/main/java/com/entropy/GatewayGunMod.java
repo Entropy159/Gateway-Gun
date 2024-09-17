@@ -1,7 +1,7 @@
 package com.entropy;
 
 import com.entropy.blocks.gategrid.Gategrid;
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 import com.entropy.entity.GatewayGunBlockEntities;
 import com.entropy.entity.WeightedCube;
 import com.entropy.items.GatewayCore;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.my_util.IntBox;
 
 import java.util.List;
-import java.util.UUID;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
@@ -223,6 +222,12 @@ public class GatewayGunMod implements ModInitializer {
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
+        })))));
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> dispatcher.register(literal("airResistance").then(argument("resistance", integer(-1000, 1000)).executes(ctx -> {
+            GatewayRecord record = GatewayRecord.get();
+            record.airResistance = getInteger(ctx, "resistance");
+            record.setDirty(true);
+            return Command.SINGLE_SUCCESS;
         })))));
 
         Registry.register(Registries.ENTITY_TYPE, id("gateway"), Gateway.entityType);

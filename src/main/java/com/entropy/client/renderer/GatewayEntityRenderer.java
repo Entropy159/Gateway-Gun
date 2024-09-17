@@ -3,7 +3,7 @@ package com.entropy.client.renderer;
 import com.entropy.GatewayGunMod;
 import com.entropy.client.GatewayGunClient;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
-import com.entropy.entities.Gateway;
+import com.entropy.entity.Gateway;
 import com.entropy.misc.GatewayGunUtils;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OverlayTexture;
