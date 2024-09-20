@@ -3,11 +3,11 @@ package com.entropy.client.renderer;
 import com.entropy.GatewayGunMod;
 import com.entropy.client.GatewayGunClient;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
+import com.entropy.config.GatewayGunConfig;
 import com.entropy.entity.Gateway;
 import com.entropy.misc.GatewayGunUtils;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.VertexConsumerProvider;
+import me.shedaniel.autoconfig.AutoConfig;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
@@ -17,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import qouteall.imm_ptl.core.CHelper;
 import qouteall.q_misc_util.my_util.DQuaternion;
 
-import static com.entropy.GatewayGunMod.id;
+import java.awt.*;
 
-import java.awt.Color;
+import static com.entropy.GatewayGunMod.id;
 
 public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
     private final GatewayOverlayModel model;
@@ -60,11 +60,17 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
         float r = color.getRed() / 255F;
         float g = color.getGreen() / 255F;
         float b = color.getBlue() / 255F;
-        float alpha = entity.isVisible() ? 0.1F : 1.0F;
+        float alpha = entity.isVisible() ? 0.1F : 1F;
+
+        VertexConsumer consumer = vertexConsumers.getBuffer(GatewayShaders.gateway());
+        if (AutoConfig.getConfigHolder(GatewayGunConfig.class).getConfig().staticGatewayRendering) {
+            consumer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(getTexture(entity)));
+            alpha = 1F;
+        }
 
         this.model.render(
                 matrices,
-                vertexConsumers.getBuffer(GatewayShaders.gateway()),
+                consumer,
                 LightmapTextureManager.pack(15, 15),
                 OverlayTexture.DEFAULT_UV, r, g, b, alpha
         );
@@ -76,6 +82,6 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
 
     @Override
     public @NotNull Identifier getTexture(@NotNull Gateway entity) {
-        return id("textures/entity/gateway.png");
+        return entity.isVisible() ? id("textures/entity/gateway_open.png") : id("textures/entity/gateway_closed.png");
     }
 }

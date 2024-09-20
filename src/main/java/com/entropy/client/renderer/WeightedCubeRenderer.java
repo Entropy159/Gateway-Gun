@@ -23,7 +23,8 @@ public class WeightedCubeRenderer extends EntityRenderer<WeightedCube> {
     public void render(WeightedCube entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
         matrices.push();
-        matrices.scale(GatewayGunMod.cubeSize, GatewayGunMod.cubeSize, GatewayGunMod.cubeSize);
+        float scale = GatewayGunMod.weightedCubeSize;
+        matrices.scale(scale, scale, scale);
         matrices.translate(-0.5,0,-0.5);
         manager.renderBlockAsEntity(entity.getDataTracker().get(WeightedCube.BLOCK), matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
         matrices.pop();

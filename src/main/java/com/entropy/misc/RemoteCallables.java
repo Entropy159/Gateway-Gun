@@ -3,10 +3,9 @@ package com.entropy.misc;
 import com.entropy.CoreData;
 import com.entropy.GatewayGunMod;
 import com.entropy.GatewayRecord;
-
+import com.entropy.client.GatewayGunClient;
 import com.entropy.items.GatewayCore;
 import com.entropy.items.GatewayGun;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.ItemCooldownManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,9 +16,7 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class RemoteCallables {
-    public static void onClientLeftClickGatewayGun(
-            ServerPlayerEntity player
-    ) {
+    public static void onClientLeftClickGatewayGun(ServerPlayerEntity player) {
         ItemStack itemInHand = player.getStackInHand(Hand.MAIN_HAND);
         if (itemInHand.getItem() == GatewayGunMod.GATEWAY_GUN) {
             ItemCooldownManager cooldowns = player.getItemCooldownManager();
@@ -35,22 +32,12 @@ public class RemoteCallables {
         }
     }
 
-    public static void onClientClearGatewayGun(
-            ServerPlayerEntity player
-    ) {
+    public static void onClientClearGatewayGun(ServerPlayerEntity player) {
         if (player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayGun) {
             GatewayRecord record = GatewayRecord.get();
             CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), false);
-            GatewayRecord.GatewayID id1 =
-                    new GatewayRecord.GatewayID(
-                            data.code,
-                            GatewayRecord.GatewaySide.ONE
-                    );
-            GatewayRecord.GatewayID id2 =
-                    new GatewayRecord.GatewayID(
-                            data.code,
-                            GatewayRecord.GatewaySide.TWO
-                    );
+            GatewayRecord.GatewayID id1 = new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.ONE);
+            GatewayRecord.GatewayID id2 = new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.TWO);
             if (data.restrictSide != GatewayRecord.GatewaySide.TWO) {
                 record.data.remove(id1);
             }
@@ -99,7 +86,11 @@ public class RemoteCallables {
         }
     }
 
-    public static void releaseEntity(ServerPlayerEntity player){
+    public static void releaseEntity(ServerPlayerEntity player) {
         grabEntity(player, null);
+    }
+
+    public static void updateAirResistance(int newResistance) {
+        GatewayGunClient.airResistance = newResistance;
     }
 }

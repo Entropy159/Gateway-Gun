@@ -23,7 +23,7 @@ public class WeightedCube extends LivingEntity {
     public static final String BLOCK_KEY = "block_state";
     public static final TrackedData<BlockState> BLOCK = DataTracker.registerData(WeightedCube.class, TrackedDataHandlerRegistry.BLOCK_STATE);
 
-    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).setDimensions(GatewayGunMod.cubeSize, GatewayGunMod.cubeSize).build("weighted_cube");
+    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).setDimensions(GatewayGunMod.weightedCubeSize, GatewayGunMod.weightedCubeSize).build("weighted_cube");
 
     public WeightedCube(EntityType<WeightedCube> entityEntityType, World world) {
         super(entityEntityType, world);

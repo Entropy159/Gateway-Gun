@@ -1,6 +1,7 @@
 package com.entropy;
 
 import com.entropy.blocks.gategrid.Gategrid;
+import com.entropy.config.GatewayGunConfig;
 import com.entropy.entity.Gateway;
 import com.entropy.entity.GatewayGunBlockEntities;
 import com.entropy.entity.WeightedCube;
@@ -10,21 +11,29 @@ import com.entropy.misc.BlockList;
 import com.entropy.misc.SideSuggestionProvider;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.command.argument.BlockStateArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -36,9 +45,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import qouteall.q_misc_util.api.McRemoteProcedureCall;
 import qouteall.q_misc_util.my_util.IntBox;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
@@ -47,6 +58,7 @@ import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static com.mojang.brigadier.arguments.StringArgumentType.getString;
 import static com.mojang.brigadier.arguments.StringArgumentType.string;
 import static net.minecraft.command.argument.BlockStateArgumentType.blockState;
+import static net.minecraft.command.argument.BlockStateArgumentType.getBlockState;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -63,8 +75,9 @@ public class GatewayGunMod implements ModInitializer {
     public static final double gatewayOffset = 0.001;
     public static final double overlayOffset = 0.001;
     public static double grabDistance = 3;
-    public static final float cubeSize = 0.9F;
     public static List<String> cubeKills = List.of("lava", "onFire", "inFire", "outOfWorld");
+
+    public static float weightedCubeSize = 0.9F;
 
     public static final GatewayGun GATEWAY_GUN = new GatewayGun();
     public static final GatewayCore GATEWAY_CORE = new GatewayCore();
@@ -96,6 +109,7 @@ public class GatewayGunMod implements ModInitializer {
     public static final SimpleCommandExceptionType NOT_GATE_CORE = new SimpleCommandExceptionType(Text.translatable("fail.nocore"));
     public static final SimpleCommandExceptionType BAD_COLOR = new SimpleCommandExceptionType(Text.translatable("fail.badcolor"));
     public static final SimpleCommandExceptionType BAD_SIZE = new SimpleCommandExceptionType(Text.translatable("fail.badsize"));
+    public static final SimpleCommandExceptionType BAD_BLOCK = new SimpleCommandExceptionType(Text.translatable("fail.badblock"));
 
     public static Identifier id(String path) {
         return new Identifier(MODID, path);
@@ -109,6 +123,8 @@ public class GatewayGunMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        AutoConfig.register(GatewayGunConfig.class, JanksonConfigSerializer::new);
+
         Registry.register(Registries.BLOCK, id("gategrid"), GATEGRID);
 
         Registry.register(Registries.ITEM, id("gatewaygun"), GATEWAY_GUN);
@@ -124,7 +140,7 @@ public class GatewayGunMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> dispatcher.register(literal("cube").then(argument("block", blockState(access)).executes(ctx -> {
             WeightedCube cube = new WeightedCube(WeightedCube.entityType, ctx.getSource().getWorld());
             cube.setPosition(ctx.getSource().getPosition());
-            cube.getDataTracker().set(WeightedCube.BLOCK, BlockStateArgumentType.getBlockState(ctx, "block").getBlockState());
+            cube.getDataTracker().set(WeightedCube.BLOCK, getBlockState(ctx, "block").getBlockState());
             ctx.getSource().getWorld().spawnEntity(cube);
             return Command.SINGLE_SUCCESS;
         }))));
@@ -139,7 +155,7 @@ public class GatewayGunMod implements ModInitializer {
                 }
                 data.color1 = col;
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Color 1 set to "+data.color1), true);
+                player.sendMessage(Text.literal("Color 1 set to " + data.color1), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -154,7 +170,7 @@ public class GatewayGunMod implements ModInitializer {
                 }
                 data.color2 = col;
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Color 2 set to "+data.color2), true);
+                player.sendMessage(Text.literal("Color 2 set to " + data.color2), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -162,12 +178,12 @@ public class GatewayGunMod implements ModInitializer {
             if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 int width = getInteger(ctx, "width");
-                if(width < 1){
+                if (width < 1) {
                     throw BAD_SIZE.create();
                 }
                 data.width = width;
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Width set to "+data.width), true);
+                player.sendMessage(Text.literal("Width set to " + data.width), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -175,12 +191,12 @@ public class GatewayGunMod implements ModInitializer {
             if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 int height = getInteger(ctx, "height");
-                if(height < 1){
+                if (height < 1) {
                     throw BAD_SIZE.create();
                 }
                 data.height = height;
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Height set to "+data.height), true);
+                player.sendMessage(Text.literal("Height set to " + data.height), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -189,7 +205,7 @@ public class GatewayGunMod implements ModInitializer {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 data.gravity = getBool(ctx, "gravity");
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Gravity set to "+data.gravity), true);
+                player.sendMessage(Text.literal("Gravity set to " + data.gravity), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -198,7 +214,7 @@ public class GatewayGunMod implements ModInitializer {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 data.code = getInteger(ctx, "code");
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Code set to "+data.code), true);
+                player.sendMessage(Text.literal("Code set to " + data.code), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -207,11 +223,49 @@ public class GatewayGunMod implements ModInitializer {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 data.pickup = getBool(ctx, "pickup");
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Pickup set to "+data.pickup), true);
+                player.sendMessage(Text.literal("Pickup set to " + data.pickup), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
-        }))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider()).executes(ctx -> {
+        }))).then(literal("blocks").then(literal("list").executes(ctx -> {
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+                player.sendMessage(Text.literal("Allowed blocks:").formatted(Formatting.DARK_AQUA));
+                for (String block : data.allowedBlocks.list()) {
+                    player.sendMessage(Text.literal(block).formatted(Formatting.AQUA));
+                }
+                return Command.SINGLE_SUCCESS;
+            }
+            throw NOT_GATE_CORE.create();
+        })).then(literal("add").then(argument("block", blockState(access)).executes(ctx -> {
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+                Optional<RegistryKey<Block>> op = getBlockState(ctx, "block").getBlockState().getRegistryEntry().getKey();
+                if (op.isEmpty()) {
+                    throw BAD_BLOCK.create();
+                }
+                String block = op.get().getValue().toString();
+                data.allowedBlocks.list().add(block);
+                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
+                player.sendMessage(Text.literal("Added block " + block + " to allowlist"), true);
+                return Command.SINGLE_SUCCESS;
+            }
+            throw NOT_GATE_CORE.create();
+        }))).then(literal("remove").then(argument("block", blockState(access)).executes(ctx -> {
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+                Optional<RegistryKey<Block>> op = getBlockState(ctx, "block").getBlockState().getRegistryEntry().getKey();
+                if (op.isEmpty()) {
+                    throw BAD_BLOCK.create();
+                }
+                String block = op.get().getValue().toString();
+                data.allowedBlocks.list().remove(block);
+                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
+                player.sendMessage(Text.literal("Removed block " + block + " from allowlist"), true);
+                return Command.SINGLE_SUCCESS;
+            }
+            throw NOT_GATE_CORE.create();
+        })))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider()).executes(ctx -> {
             if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 data.restrictSide = GatewayRecord.GatewaySide.fromString(getString(ctx, "side"));
@@ -219,7 +273,7 @@ public class GatewayGunMod implements ModInitializer {
                     data.restrictSide = null;
                 }
                 player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Side set to "+data.restrictSide), true);
+                player.sendMessage(Text.literal("Side set to " + data.restrictSide), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -228,8 +282,15 @@ public class GatewayGunMod implements ModInitializer {
             GatewayRecord record = GatewayRecord.get();
             record.airResistance = getInteger(ctx, "resistance");
             record.setDirty(true);
+            for (ServerPlayerEntity player : ctx.getSource().getWorld().getPlayers()) {
+                McRemoteProcedureCall.tellClientToInvoke(player, "com.entropy.misc.RemoteCallables.updateAirResistance", record.airResistance);
+            }
             return Command.SINGLE_SUCCESS;
         })))));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            GatewayRecord record = GatewayRecord.get();
+            McRemoteProcedureCall.tellClientToInvoke(handler.getPlayer(), "com.entropy.misc.RemoteCallables.updateAirResistance", record.airResistance);
+        });
 
         Registry.register(Registries.ENTITY_TYPE, id("gateway"), Gateway.entityType);
         Registry.register(Registries.ENTITY_TYPE, id("weighted_cube"), WeightedCube.entityType);

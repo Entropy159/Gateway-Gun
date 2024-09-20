@@ -38,7 +38,7 @@ public class GatewayGunClient implements ClientModInitializer {
     public static final EntityModelLayer OVERLAY_MODEL_LAYER =
             new EntityModelLayer(id("gateway_overlay"), "main");
 
-    public int airResistance = 90;
+    public static int airResistance = 90;
 
     @Override
     public void onInitializeClient() {

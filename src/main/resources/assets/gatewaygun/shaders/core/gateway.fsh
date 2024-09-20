@@ -96,7 +96,7 @@ vec3 hsvToRgb(float hue, float saturation, float value) {
 }
 
 void main() {
-    vec2 coord = texCoord0.rg;
+	vec2 coord = vec2((texCoord0.r-0.5)*2, texCoord0.g-0.25);
 
 	float diameters[6];
 	diameters[0] = 0.26;//0.165;

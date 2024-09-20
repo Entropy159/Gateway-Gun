@@ -24,6 +24,9 @@
     ],
     "main": [
       "com.entropy.GatewayGunMod"
+    ],
+    "modmenu": [
+      "com.entropy.config.GatewayGunConfig"
     ]
   },
   "depends": {

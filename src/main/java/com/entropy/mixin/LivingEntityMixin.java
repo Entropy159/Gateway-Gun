@@ -1,6 +1,7 @@
 package com.entropy.mixin;
 
 import com.entropy.GatewayRecord;
+import com.entropy.client.GatewayGunClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -17,6 +18,9 @@ public abstract class LivingEntityMixin extends Entity {
 
     @ModifyVariable(method = "travel", at = @At("STORE"), ordinal = 1)
     public float airResistance(float value) {
+        if (getWorld().isClient) {
+            return !isOnGround() && value == 0.91F ? 1 - GatewayGunClient.airResistance / 1000F : value;
+        }
         return !isOnGround() && value == 0.91F ? 1 - GatewayRecord.get().airResistance / 1000F : value;
     }
 }
