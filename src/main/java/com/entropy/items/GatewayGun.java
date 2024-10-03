@@ -61,6 +61,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class GatewayGun extends Item implements GeoItem {
     public static final int COOLDOWN_TICKS = 4;
 
@@ -233,7 +235,7 @@ public class GatewayGun extends Item implements GeoItem {
         Vec3d newOrigin = Helper
                 .getBoxSurface(placement.areaBox.toRealNumberBox(), wallFacing.getOpposite())
                 .getCenter()
-                .add(wallFacingVec.multiply(GatewayGunMod.gatewayOffset));
+                .add(wallFacingVec.multiply(gatewayOffset));
 
         GatewayGunUtils.placeGateway(world, newOrigin, Vec3d.of(upDir.getVector()), Vec3d.of(rightDir.getVector()), data, side, placement.areaBox, placement.wallBox, true);
 
@@ -281,7 +283,7 @@ public class GatewayGun extends Item implements GeoItem {
                     world.playSound(null, entity.getEyePos().x, entity.getEyePos().y, entity.getEyePos().z, GatewayGunMod.GRAB_STOP_EVENT, SoundCategory.PLAYERS, 1, 1);
                 } else {
                     grabbed.fallDistance = 0;
-                    Vec3d pos = entity.getEyePos().add(entity.getRotationVec(1).x * GatewayGunMod.grabDistance, entity.getRotationVec(1).y * GatewayGunMod.grabDistance, entity.getRotationVec(1).z * GatewayGunMod.grabDistance);
+                    Vec3d pos = entity.getEyePos().add(entity.getRotationVec(1).x * grabDistance, entity.getRotationVec(1).y * grabDistance, entity.getRotationVec(1).z * grabDistance);
                     pos = GatewayGunUtils.portalRaytrace(world, entity.getEyePos(), pos).pos();
                     grabbed.setVelocity(pos.subtract(grabbed.getPos()).subtract(new Vec3d(0, grabbed.getBoundingBox().getLengthY() / 2, 0)));
                 }

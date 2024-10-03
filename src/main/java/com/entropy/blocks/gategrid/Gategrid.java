@@ -40,6 +40,9 @@ import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.my_util.AARotation;
 import qouteall.q_misc_util.my_util.IntBox;
 
+import static com.entropy.GatewayGunConstants.*;
+
+@SuppressWarnings("deprecation")
 public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
     public static final DirectionProperty FACING = Properties.FACING;
     public static final BooleanProperty POWERED = Properties.POWERED;
@@ -186,7 +189,7 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
                     BlockPos transformedSize = rot.transform(new BlockPos(gategrid.data.width, gategrid.data.height, 1));
                     IntBox portalArea = IntBox.getBoxByPosAndSignedSize(pos, transformedSize);
                     IntBox wallArea = portalArea.getMoved(state.get(FACING).getOpposite().getVector());
-                    GatewayGunUtils.placeGateway(server, pos.toCenterPos().add(0, 0.5, 0).add(Vec3d.of(state.get(FACING).getVector()).multiply(0.5 - GatewayGunMod.gatewayOffset)), Vec3d.of(up.getVector()), Vec3d.of(right.getVector()), gategrid.data, gategrid.data.restrictSide == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide, portalArea, wallArea, false);
+                    GatewayGunUtils.placeGateway(server, pos.toCenterPos().add(0, 0.5, 0).add(Vec3d.of(state.get(FACING).getVector()).multiply(0.5 - gatewayOffset)), Vec3d.of(up.getVector()), Vec3d.of(right.getVector()), gategrid.data, gategrid.data.restrictSide == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide, portalArea, wallArea, false);
                     world.playSound(null, pos, GatewayGunMod.GATEWAY_OPEN_EVENT, SoundCategory.BLOCKS, 1, 1);
                     world.setBlockState(pos, state.with(POWERED, true));
                 } else if (!world.isReceivingRedstonePower(pos) && state.get(POWERED)) {

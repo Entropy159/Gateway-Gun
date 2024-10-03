@@ -26,7 +26,7 @@
       "com.entropy.GatewayGunMod"
     ],
     "modmenu": [
-      "com.entropy.config.GatewayGunConfig"
+      "com.entropy.GatewayGunConfig"
     ]
   },
   "depends": {

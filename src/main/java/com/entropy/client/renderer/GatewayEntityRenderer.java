@@ -1,10 +1,10 @@
 package com.entropy.client.renderer;
 
-import com.entropy.GatewayGunMod;
 import com.entropy.client.GatewayGunClient;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
-import com.entropy.config.GatewayGunConfig;
+import com.entropy.GatewayGunConfig;
 import com.entropy.entity.Gateway;
+import com.entropy.items.GatewayGun;
 import com.entropy.misc.GatewayGunUtils;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.render.*;
@@ -19,6 +19,7 @@ import qouteall.q_misc_util.my_util.DQuaternion;
 
 import java.awt.*;
 
+import static com.entropy.GatewayGunConstants.*;
 import static com.entropy.GatewayGunMod.id;
 
 public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
@@ -47,10 +48,10 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
 
         matrices.peek().getPositionMatrix().rotate(entity.getOrientationRotation().toMcQuaternion());
 
-        matrices.translate(0, 0, GatewayGunMod.overlayOffset);
+        matrices.translate(0, 0, overlayOffset);
 
-        float scale1 = (float) (entity.getWidth() / GatewayGunMod.sizeMult);
-        float scale2 = (float) (entity.getHeight() / GatewayGunMod.sizeMult);
+        float scale1 = (float) (entity.getWidth() / sizeMult);
+        float scale2 = (float) (entity.getHeight() / sizeMult);
         float scale3 = 1;
 
         matrices.scale(scale1, scale2, scale3);
@@ -63,7 +64,7 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
         float alpha = entity.isVisible() ? 0.1F : 1F;
 
         VertexConsumer consumer = vertexConsumers.getBuffer(GatewayShaders.gateway());
-        if (AutoConfig.getConfigHolder(GatewayGunConfig.class).getConfig().staticGatewayRendering) {
+        if (GatewayGunConfig.get().staticGatewayRendering) {
             consumer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(getTexture(entity)));
             alpha = 1F;
         }

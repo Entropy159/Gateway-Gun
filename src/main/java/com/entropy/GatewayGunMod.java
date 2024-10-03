@@ -1,7 +1,8 @@
 package com.entropy;
 
+import com.entropy.blocks.cubedispenser.CubeDispenser;
 import com.entropy.blocks.gategrid.Gategrid;
-import com.entropy.config.GatewayGunConfig;
+import com.entropy.blocks.quantumfield.QuantumField;
 import com.entropy.entity.Gateway;
 import com.entropy.entity.GatewayGunBlockEntities;
 import com.entropy.entity.WeightedCube;
@@ -18,18 +19,14 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -43,7 +40,6 @@ import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.api.McRemoteProcedureCall;
 import qouteall.q_misc_util.my_util.IntBox;
@@ -61,28 +57,17 @@ import static net.minecraft.command.argument.BlockStateArgumentType.blockState;
 import static net.minecraft.command.argument.BlockStateArgumentType.getBlockState;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
+import static com.entropy.GatewayGunConstants.*;
 
 public class GatewayGunMod implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
-
-    public static final String MODID = "gatewaygun";
-
-    public static final double sizeMult = 15.0 / 16.0;
-    public static final int defaultWidth = 1;
-    public static final int defaultHeight = 2;
-    public static final String defaultColor1 = "ffffff";
-    public static final String defaultColor2 = "ffd700";
-    public static final double gatewayOffset = 0.001;
-    public static final double overlayOffset = 0.001;
-    public static double grabDistance = 3;
-    public static List<String> cubeKills = List.of("lava", "onFire", "inFire", "outOfWorld");
-
-    public static float weightedCubeSize = 0.9F;
 
     public static final GatewayGun GATEWAY_GUN = new GatewayGun();
     public static final GatewayCore GATEWAY_CORE = new GatewayCore();
 
     public static final Gategrid GATEGRID = new Gategrid();
+    public static final QuantumField QUANTUM_FIELD = new QuantumField();
+    public static final CubeDispenser CUBE_DISPENSER = new CubeDispenser();
 
     public static final Identifier GATEWAY1_SHOOT = id("gateway1_shoot");
     public static final Identifier GATEWAY2_SHOOT = id("gateway2_shoot");
@@ -121,21 +106,27 @@ public class GatewayGunMod implements ModInitializer {
         );
     }
 
+    public static void registerBlock(String name, Block block, String tooltipTranslation) {
+        Registry.register(Registries.BLOCK, id(name), block);
+        Registry.register(Registries.ITEM, id(name), new BlockItem(block, new FabricItemSettings().rarity(Rarity.EPIC)) {
+            @Override
+            public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+                super.appendTooltip(stack, world, tooltip, context);
+                tooltip.add(Text.translatable(tooltipTranslation));
+            }
+        });
+    }
+
     @Override
     public void onInitialize() {
         AutoConfig.register(GatewayGunConfig.class, JanksonConfigSerializer::new);
 
-        Registry.register(Registries.BLOCK, id("gategrid"), GATEGRID);
+        registerBlock("gategrid", GATEGRID, "block.gatewaygun.gategrid_desc");
+        registerBlock("quantumfield", QUANTUM_FIELD, "block.gatewaygun.quantumfield_desc");
+        registerBlock("cube_dispenser", CUBE_DISPENSER, "block.gatewaygun.cube_dispenser_desc");
 
         Registry.register(Registries.ITEM, id("gatewaygun"), GATEWAY_GUN);
         Registry.register(Registries.ITEM, id("gatewaycore"), GATEWAY_CORE);
-        Registry.register(Registries.ITEM, id("gategrid"), new BlockItem(GATEGRID, new FabricItemSettings().rarity(Rarity.EPIC)) {
-            @Override
-            public void appendTooltip(@NotNull ItemStack stack, @Nullable World level, @NotNull List<Text> tooltipComponents, @NotNull TooltipContext isAdvanced) {
-                super.appendTooltip(stack, level, tooltipComponents, isAdvanced);
-                tooltipComponents.add(Text.translatable("block.gatewaygun.gategrid_desc").formatted(Formatting.GOLD));
-            }
-        });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> dispatcher.register(literal("cube").then(argument("block", blockState(access)).executes(ctx -> {
             WeightedCube cube = new WeightedCube(WeightedCube.entityType, ctx.getSource().getWorld());
@@ -265,7 +256,7 @@ public class GatewayGunMod implements ModInitializer {
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
-        })))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider()).executes(ctx -> {
+        })))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider(false, true)).executes(ctx -> {
             if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
                 CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
                 data.restrictSide = GatewayRecord.GatewaySide.fromString(getString(ctx, "side"));
@@ -285,6 +276,19 @@ public class GatewayGunMod implements ModInitializer {
             for (ServerPlayerEntity player : ctx.getSource().getWorld().getPlayers()) {
                 McRemoteProcedureCall.tellClientToInvoke(player, "com.entropy.misc.RemoteCallables.updateAirResistance", record.airResistance);
             }
+            return Command.SINGLE_SUCCESS;
+        })))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("cleargateways").then(argument("code", integer(0)).then(argument("side", string()).suggests(new SideSuggestionProvider(true, false)).executes(ctx -> {
+            GatewayRecord record = GatewayRecord.get();
+            String side = getString(ctx, "side");
+            int code = getInteger(ctx, "code");
+            if (side.equals("ONE") || side.equals("BOTH")) {
+                record.data.remove(new GatewayRecord.GatewayID(code, GatewayRecord.GatewaySide.ONE));
+            }
+            if (side.equals("TWO") || side.equals("BOTH")) {
+                record.data.remove(new GatewayRecord.GatewayID(code, GatewayRecord.GatewaySide.TWO));
+            }
+            ctx.getSource().sendFeedback(() -> Text.literal("Removed gateways for code " + code + ", sides " + side), true);
             return Command.SINGLE_SUCCESS;
         })))));
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
@@ -328,6 +332,8 @@ public class GatewayGunMod implements ModInitializer {
             entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, defaultWidth, defaultHeight, 0, null, true, null, false).toStack(GATEWAY_CORE));
 
             entries.add(new CoreData(false).toStack(GATEGRID));
+            entries.add(new ItemStack(QUANTUM_FIELD));
+            entries.add(new ItemStack(CUBE_DISPENSER));
         });
     }
 }

@@ -11,8 +11,10 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class WeightedCubeRenderer extends EntityRenderer<WeightedCube> {
-    private final BlockRenderManager manager;
+    public final BlockRenderManager manager;
 
     public WeightedCubeRenderer(EntityRendererFactory.Context context){
         super(context);
@@ -23,7 +25,7 @@ public class WeightedCubeRenderer extends EntityRenderer<WeightedCube> {
     public void render(WeightedCube entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
         matrices.push();
-        float scale = GatewayGunMod.weightedCubeSize;
+        float scale = weightedCubeSize;
         matrices.scale(scale, scale, scale);
         matrices.translate(-0.5,0,-0.5);
         manager.renderBlockAsEntity(entity.getDataTracker().get(WeightedCube.BLOCK), matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);

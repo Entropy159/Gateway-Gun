@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class GatewayRecord extends PersistentState {
     public enum GatewaySide {
         ONE, // left click
@@ -39,8 +41,8 @@ public class GatewayRecord extends PersistentState {
 
         public String getColorString() {
             return switch (this) {
-                case ONE -> GatewayGunMod.defaultColor1;
-                case TWO -> GatewayGunMod.defaultColor2;
+                case ONE -> defaultColor1;
+                case TWO -> defaultColor2;
             };
         }
     }

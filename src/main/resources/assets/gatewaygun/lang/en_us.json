@@ -5,6 +5,10 @@
 
   "block.gatewaygun.gategrid": "Gategrid",
   "block.gatewaygun.gategrid_desc": "Entropy Corps Quantum Gateway Control Grid",
+  "block.gatewaygun.quantumfield": "Quantum Field",
+  "block.gatewaygun.quantumfield_desc": "Entropy Corps Quantum Gateway Control Field",
+  "block.gatewaygun.cube_dispenser": "Cube Dispenser",
+  "block.gatewaygun.cube_dispenser_desc": "Entropy Corps Weighted Cube Dispenser",
 
   "entity.gatewaygun.weighted_cube": "Weighted Cube",
   
@@ -31,6 +35,8 @@
   "text.autoconfig.gatewaygun.title": "Gateway Gun Options",
   "text.autoconfig.gatewaygun.option.staticGatewayRendering": "Static Gateway Rendering",
   "text.autoconfig.gatewaygun.option.staticGatewayRendering.@Tooltip": "Render portal overlays with a static image rather than a shader",
+  "text.autoconfig.gatewaygun.option.staticQuantumFieldRendering": "Static Quantum Field Rendering",
+  "text.autoconfig.gatewaygun.option.staticQuantumFieldRendering.@Tooltip": "Render quantum fields with an animated texture rather than a shader",
 
   "fail.nocore": "You need to be holding a Gateway Core for this command",
   "fail.badsize": "Size cannot be less than 1",

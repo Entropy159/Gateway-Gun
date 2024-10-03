@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "gatewaygun:block/cube_dispenser"
+    }
+  }
+}

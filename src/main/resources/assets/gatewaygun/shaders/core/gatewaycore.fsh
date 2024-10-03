@@ -10,7 +10,7 @@ in vec4 normal;
 
 out vec4 fragColor;
 
-#define timeMult 1200.0
+#define iTime GameTime*1200.0
 
 float ripple(vec2 p){
 	vec2 i = p;
@@ -18,7 +18,7 @@ float ripple(vec2 p){
 	float inten = .05;
 
 	for (int n = 0; n < 3; n++) {
-		float t = GameTime * timeMult * (1.0 - (0.060 / float(n+1)));
+		float t = iTime * (1.0 - (0.060 / float(n+1)));
 
 		i = p + vec2(cos(t - i.x) + sin(t + i.y),
 		sin(t - i.y) + cos(t + i.x));
@@ -34,8 +34,6 @@ float ripple(vec2 p){
 
 void main() {
     vec2 coord = texCoord0.rg * 3.0 + 0.5;
-    
-    float time = GameTime * timeMult;
     
     float r = ripple(coord)+2.0;
     

@@ -17,6 +17,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class CoreData {
     public @NotNull BlockList allowedBlocks;
 
@@ -42,15 +44,15 @@ public class CoreData {
     }
 
     public CoreData(@NotNull BlockList allowedBlocks) {
-        this(allowedBlocks, GatewayGunMod.defaultColor1, GatewayGunMod.defaultColor2, false, null);
+        this(allowedBlocks, defaultColor1, defaultColor2, false, null);
     }
 
     public CoreData(boolean hasCore) {
-        this(BlockList.createDefault(), GatewayGunMod.defaultColor1, GatewayGunMod.defaultColor2, false, GatewayGunMod.defaultWidth, GatewayGunMod.defaultHeight, 0, null, hasCore, null, true);
+        this(BlockList.createDefault(), defaultColor1, defaultColor2, false, defaultWidth, defaultHeight, 0, null, hasCore, null, true);
     }
 
     public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, boolean transformGravity, @Nullable GatewaySide side) {
-        this(allowedBlocks, side1Color, side2Color, transformGravity, GatewayGunMod.defaultWidth, GatewayGunMod.defaultHeight, 0, side);
+        this(allowedBlocks, side1Color, side2Color, transformGravity, defaultWidth, defaultHeight, 0, side);
     }
 
     public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, boolean transformGravity, int width, int height, int id, @Nullable GatewaySide side) {
@@ -81,8 +83,8 @@ public class CoreData {
         String side1Color = tag.getString("color1");
         String side2Color = tag.getString("color2");
 
-        int w = tag.contains("width") ? tag.getInt("width") : GatewayGunMod.defaultWidth;
-        int h = tag.contains("height") ? tag.getInt("height") : GatewayGunMod.defaultHeight;
+        int w = tag.contains("width") ? tag.getInt("width") : defaultWidth;
+        int h = tag.contains("height") ? tag.getInt("height") : defaultHeight;
 
         boolean transformGravity = tag.contains("transformGravity") && tag.getBoolean("transformGravity");
 
@@ -164,7 +166,7 @@ public class CoreData {
             }
 
             tooltip.add(Text.empty().append(Text.literal("█").setStyle(Style.EMPTY.withColor(GatewayGunUtils.hexToInt(color1)))).append(" ").append(Text.literal("█").setStyle(Style.EMPTY.withColor(GatewayGunUtils.hexToInt(color2)))));
-            if (width != GatewayGunMod.defaultWidth || height != GatewayGunMod.defaultHeight) {
+            if (width != defaultWidth || height != defaultHeight) {
                 tooltip.add(Text.literal("Size: " + width + "x" + height).formatted(Formatting.BLUE));
             }
 

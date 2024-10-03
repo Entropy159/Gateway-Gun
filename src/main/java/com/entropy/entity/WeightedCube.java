@@ -1,6 +1,5 @@
 package com.entropy.entity;
 
-import com.entropy.GatewayGunMod;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
@@ -19,11 +18,13 @@ import net.minecraft.util.Arm;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class WeightedCube extends LivingEntity {
     public static final String BLOCK_KEY = "block_state";
     public static final TrackedData<BlockState> BLOCK = DataTracker.registerData(WeightedCube.class, TrackedDataHandlerRegistry.BLOCK_STATE);
 
-    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).setDimensions(GatewayGunMod.weightedCubeSize, GatewayGunMod.weightedCubeSize).build("weighted_cube");
+    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).setDimensions(weightedCubeSize, weightedCubeSize).build("weighted_cube");
 
     public WeightedCube(EntityType<WeightedCube> entityEntityType, World world) {
         super(entityEntityType, world);
@@ -80,7 +81,7 @@ public class WeightedCube extends LivingEntity {
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        for (String s : GatewayGunMod.cubeKills) {
+        for (String s : cubeKills) {
             if (s.equals(source.getName())) {
                 kill();
             }

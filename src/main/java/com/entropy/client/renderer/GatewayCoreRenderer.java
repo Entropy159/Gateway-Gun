@@ -20,6 +20,8 @@ import software.bernie.geckolib.model.DefaultedItemGeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class GatewayCoreRenderer extends GeoItemRenderer<GatewayCore> {
 	public GatewayCoreRenderer() {
 		super(new DefaultedItemGeoModel<>(GatewayGunMod.id("gatewaycore")));
@@ -29,8 +31,8 @@ public class GatewayCoreRenderer extends GeoItemRenderer<GatewayCore> {
             public void render(MatrixStack poseStack, GatewayCore animatable, BakedGeoModel bakedModel,
                                RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, float partialTick,
                                int packedLight, int packedOverlay) {
-                Color color1 = new Color(GatewayGunUtils.hexToInt(GatewayGunMod.defaultColor1));
-                Color color2 = new Color(GatewayGunUtils.hexToInt(GatewayGunMod.defaultColor2));
+                Color color1 = new Color(GatewayGunUtils.hexToInt(defaultColor1));
+                Color color2 = new Color(GatewayGunUtils.hexToInt(defaultColor2));
                 if (currentItemStack.getOrCreateNbt().contains("color1")) {
                     color1 = new Color(GatewayGunUtils.hexToInt(currentItemStack.getOrCreateNbt().getString("color1")));
                 }

@@ -1,0 +1,172 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_post"
+      },
+      "when": {
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side"
+      },
+      "when": {
+        "north": "true",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_alt"
+      },
+      "when": {
+        "south": "true",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_alt",
+        "y": 90
+      },
+      "when": {
+        "west": "true",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside"
+      },
+      "when": {
+        "north": "false",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_alt"
+      },
+      "when": {
+        "east": "false",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_alt",
+        "y": 90
+      },
+      "when": {
+        "south": "false",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside",
+        "y": 270
+      },
+      "when": {
+        "west": "false",
+        "enabled": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_post_off"
+      },
+      "when": {
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_off"
+      },
+      "when": {
+        "north": "true",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_off",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_alt_off"
+      },
+      "when": {
+        "south": "true",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_side_alt_off",
+        "y": 90
+      },
+      "when": {
+        "west": "true",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_off"
+      },
+      "when": {
+        "north": "false",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_alt_off"
+      },
+      "when": {
+        "east": "false",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_alt_off",
+        "y": 90
+      },
+      "when": {
+        "south": "false",
+        "enabled": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "gatewaygun:block/quantumfield_noside_off",
+        "y": 270
+      },
+      "when": {
+        "west": "false",
+        "enabled": "false"
+      }
+    }
+  ]
+}

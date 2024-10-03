@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.entropy.GatewayGunConstants.*;
+
 public class GatewayGunUtils {
     public static void placeGateway(ServerWorld world, Vec3d pos, Vec3d up, Vec3d right, CoreData data, GatewayRecord.GatewaySide side, IntBox area, IntBox wall, boolean blockPredicate) {
         GatewayRecord record = GatewayRecord.get();
@@ -46,7 +48,7 @@ public class GatewayGunUtils {
         gateway.clearAnimationDrivers(true, true);
         gateway.setWidth(data.width);
         gateway.setHeight(data.height);
-        NormalAnimation anim = NormalAnimation.createSizeAnimation(gateway, new Vec2d(0.01, 0.01), new Vec2d(GatewayGunMod.sizeMult, GatewayGunMod.sizeMult), gateway.getAnimationEffectiveTime(), 5, TimingFunction.easeInOutCubic);
+        NormalAnimation anim = NormalAnimation.createSizeAnimation(gateway, new Vec2d(0.01, 0.01), new Vec2d(sizeMult, sizeMult), gateway.getAnimationEffectiveTime(), 5, TimingFunction.easeInOutCubic);
         gateway.addThisSideAnimationDriver(anim);
         gateway.addOtherSideAnimationDriver(anim);
 
@@ -92,6 +94,10 @@ public class GatewayGunUtils {
             gateway.reloadAndSyncToClient();
         }
 
+    }
+
+    public static void broadcast(ServerWorld world, String message) {
+        broadcast(world, Text.literal(message));
     }
 
     public static void broadcast(ServerWorld world, Text message) {

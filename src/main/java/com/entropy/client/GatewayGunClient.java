@@ -1,12 +1,13 @@
 package com.entropy.client;
 
 import com.entropy.GatewayGunMod;
+import com.entropy.client.renderer.CubeDispenserRenderer;
 import com.entropy.client.renderer.GatewayEntityRenderer;
 import com.entropy.client.renderer.GatewayShaders;
 import com.entropy.client.renderer.WeightedCubeRenderer;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
 import com.entropy.entity.Gateway;
-
+import com.entropy.entity.GatewayGunBlockEntities;
 import com.entropy.entity.WeightedCube;
 import com.entropy.sound.GrabLoopSound;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,19 +20,19 @@ import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallbac
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.event.client.player.ClientPreAttackCallback;
-
-import static com.entropy.GatewayGunMod.id;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.ItemCooldownManager;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import qouteall.q_misc_util.api.McRemoteProcedureCall;
+
+import static com.entropy.GatewayGunMod.id;
 
 @Environment(EnvType.CLIENT)
 public class GatewayGunClient implements ClientModInitializer {
@@ -53,7 +54,7 @@ public class GatewayGunClient implements ClientModInitializer {
                 McRemoteProcedureCall.tellServerToInvoke("com.entropy.misc.RemoteCallables.modifyCore");
             }
             while (grabEntity.wasPressed()) {
-                if(client.targetedEntity != null){
+                if (client.targetedEntity != null) {
                     MinecraftClient.getInstance().getSoundManager().play(new GrabLoopSound(client.player));
                     McRemoteProcedureCall.tellServerToInvoke("com.entropy.misc.RemoteCallables.grabEntity", client.targetedEntity.getUuid());
                 } else {
@@ -66,10 +67,7 @@ public class GatewayGunClient implements ClientModInitializer {
         EntityRendererRegistry.register(Gateway.entityType, GatewayEntityRenderer::new);
         EntityRendererRegistry.register(WeightedCube.entityType, WeightedCubeRenderer::new);
 
-        CoreShaderRegistrationCallback.EVENT.register(ctx -> {
-            ctx.register(id("gateway"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, shader -> GatewayShaders.gatewayShader = shader);
-            ctx.register(id("gatewaycore"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL, shader -> GatewayShaders.gatewayCoreShader = shader);
-        });
+        CoreShaderRegistrationCallback.EVENT.register(GatewayShaders::register);
 
         ClientPreAttackCallback.EVENT.register((client, player, clickCount) -> {
             ItemStack mainHandItem = player.getMainHandStack();
@@ -93,5 +91,8 @@ public class GatewayGunClient implements ClientModInitializer {
         });
 
         BlockRenderLayerMap.INSTANCE.putBlock(GatewayGunMod.GATEGRID, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(GatewayGunMod.QUANTUM_FIELD, RenderLayer.getTranslucent());
+
+        GatewayGunBlockEntities.initializeClient();
     }
 }
