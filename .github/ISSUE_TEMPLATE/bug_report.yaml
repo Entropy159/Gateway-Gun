@@ -7,7 +7,7 @@ body:
   - type: dropdown
     id: only_immptl_and_portalgun
     attributes:
-      label: According to your testing, does the issue occur with ONLY Portal Gun mod and Immersive Portals mod and Farbic API?
+      label: According to your testing, does the issue occur with ONLY Gateway Gun mod and it's dependencies?
       options:
         - "Yes"
         - "No"
@@ -25,5 +25,5 @@ body:
     id: logs
     attributes:
       label: Post the log here
-      description: The log is `latest.log` in `logs` folder in the game directory. The log provides useful information (including the mod list) for debugging the issue.
+      description: The log is `latest.log` in `logs` folder in the game directory. The log provides useful information (including the mod list) for debugging the issue. Upload to mclo.gs and share the link to not clog the issue.
       render: shell
