@@ -3,6 +3,8 @@ package com.entropy;
 import com.entropy.GatewayRecord.GatewaySide;
 import com.entropy.misc.BlockList;
 import com.entropy.misc.GatewayGunUtils;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -12,32 +14,18 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
 import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 
-public class CoreData {
-    public @NotNull BlockList allowedBlocks;
-
-    public String color1;
-    public String color2;
-
-    public int width;
-    public int height;
-
-    public boolean gravity;
-    public boolean pickup;
-
-    public int code;
-
-    public @Nullable GatewaySide restrictSide;
-
-    public boolean hasCore;
-
-    public @Nullable UUID grabbedEntityId;
+public record CoreData(@NotNull BlockList allowedBlocks, String color1, String color2, int width, int height,
+                       boolean gravity, boolean pickup, int code, boolean hasCore, @Nullable GatewaySide restrictSide,
+                       @Nullable UUID grabbedEntityId) {
+    public static final Codec<CoreData> CODEC = RecordCodecBuilder.create(builder -> builder.group(BlockList.CODEC.fieldOf("allowedBlocks").forGetter(CoreData::allowedBlocks), Codec.STRING.fieldOf("color1").forGetter(CoreData::color1), Codec.STRING.fieldOf("color2").forGetter(CoreData::color2), Codec.INT.fieldOf("width").forGetter(CoreData::width), Codec.INT.fieldOf("height").forGetter(CoreData::height), Codec.BOOL.fieldOf("gravity").forGetter(CoreData::gravity), Codec.BOOL.fieldOf("pickup").forGetter(CoreData::pickup), Codec.INT.fieldOf("code").forGetter(CoreData::code), Codec.BOOL.fieldOf("hasCore").forGetter(CoreData::hasCore), Codec.STRING.fieldOf("side").forGetter(data -> data.restrictSide == null ? "" : data.restrictSide.toString()), Codec.STRING.fieldOf("grabbedEntity").forGetter(data -> data.grabbedEntityId == null ? "" : data.grabbedEntityId.toString())).apply(builder, CoreData::new));
 
     public CoreData() {
         this(BlockList.createDefault());
@@ -48,29 +36,23 @@ public class CoreData {
     }
 
     public CoreData(boolean hasCore) {
-        this(BlockList.createDefault(), defaultColor1, defaultColor2, false, defaultWidth, defaultHeight, 0, null, hasCore, null, true);
+        this(BlockList.createDefault(), defaultColor1, defaultColor2, defaultWidth, defaultHeight, false, true, 0, hasCore, null, null);
     }
 
     public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, boolean transformGravity, @Nullable GatewaySide side) {
-        this(allowedBlocks, side1Color, side2Color, transformGravity, defaultWidth, defaultHeight, 0, side);
+        this(allowedBlocks, side1Color, side2Color, defaultWidth, defaultHeight, transformGravity, 0, side);
     }
 
-    public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, boolean transformGravity, int width, int height, int id, @Nullable GatewaySide side) {
-        this(allowedBlocks, side1Color, side2Color, transformGravity, width, height, id, side, true, null, true);
+    public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, int width, int height, boolean transformGravity, int id, @Nullable GatewaySide side) {
+        this(allowedBlocks, side1Color, side2Color, width, height, transformGravity, true, id, true, side, null);
     }
 
-    public CoreData(@NotNull BlockList allowedBlocks, String side1Color, String side2Color, boolean transformGravity, int width, int height, int id, @Nullable GatewaySide side, boolean core, @Nullable UUID grabbed, boolean pickup) {
-        this.allowedBlocks = allowedBlocks;
-        this.color1 = side1Color;
-        this.color2 = side2Color;
-        this.gravity = transformGravity;
-        this.width = width;
-        this.height = height;
-        this.code = id;
-        this.restrictSide = side;
-        this.hasCore = core;
-        this.grabbedEntityId = grabbed;
-        this.pickup = pickup;
+    public CoreData(BlockList allowedBlocks, String side1Color, String side2Color, Integer width, Integer height, Boolean transformGravity, Boolean pickup, Integer id, Boolean hasCore, String side, String grabbed) {
+        this(allowedBlocks, side1Color, side2Color, width, height, transformGravity, pickup, id, hasCore, side.isEmpty() ? null : GatewaySide.fromString(side), grabbed.isEmpty() ? null : UUID.fromString(grabbed));
+    }
+
+    public static CoreData get(ItemStack stack, boolean hasCore) {
+        return stack.getOrDefault(GATEWAY_DATA, new CoreData(hasCore));
     }
 
     public static CoreData fromTag(NbtCompound tag, boolean shouldHaveCore) {
@@ -98,7 +80,7 @@ public class CoreData {
 
         @Nullable UUID grabbed = tag.contains("grabbedEntityId") ? tag.getUuid("grabbedEntityId") : null;
 
-        return new CoreData(allowedBlocks, side1Color, side2Color, transformGravity, w, h, id, side, hasCore, grabbed, canPickup);
+        return new CoreData(allowedBlocks, side1Color, side2Color, w, h, transformGravity, canPickup, id, hasCore, side, grabbed);
     }
 
     public NbtCompound toTag() {
@@ -123,7 +105,7 @@ public class CoreData {
 
     public ItemStack toStack(ItemConvertible item) {
         ItemStack stack = new ItemStack(item);
-        stack.setNbt(toTag());
+        stack.set(GATEWAY_DATA, this);
         return stack;
     }
 
@@ -144,7 +126,7 @@ public class CoreData {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "CoreData{" + "allowedBlocks=" + allowedBlocks + ", color1=" + color1 + ", color2=" + color2 + ", width=" + width + ", height=" + height + '}';
     }
 
@@ -178,7 +160,7 @@ public class CoreData {
                 tooltip.add(Text.literal("Restricted to side " + restrictSide.name()).formatted(Formatting.DARK_RED));
             }
 
-            if(!pickup){
+            if (!pickup) {
                 tooltip.add(Text.literal("No entity pickup").formatted(Formatting.RED));
             }
 
@@ -186,5 +168,49 @@ public class CoreData {
         } else {
             tooltip.add(Text.literal("No gate core").formatted(Formatting.RED));
         }
+    }
+
+    public CoreData withBlockList(BlockList val) {
+        return new CoreData(val, color1, color2, width, height, gravity, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withColor1(String val) {
+        return new CoreData(allowedBlocks, val, color2, width, height, gravity, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withColor2(String val) {
+        return new CoreData(allowedBlocks, color1, val, width, height, gravity, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withWidth(int val) {
+        return new CoreData(allowedBlocks, color1, color2, val, height, gravity, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withHeight(int val) {
+        return new CoreData(allowedBlocks, color1, color2, width, val, gravity, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withGravity(boolean val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, val, pickup, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withPickup(boolean val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, gravity, val, code, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withCode(int val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, gravity, pickup, val, hasCore, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withHasCore(boolean val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, gravity, pickup, code, val, restrictSide, grabbedEntityId);
+    }
+
+    public CoreData withRestrictSide(@Nullable GatewaySide val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, gravity, pickup, code, hasCore, val, grabbedEntityId);
+    }
+
+    public CoreData withGrabbed(@Nullable UUID val) {
+        return new CoreData(allowedBlocks, color1, color2, width, height, gravity, pickup, code, hasCore, restrictSide, val);
     }
 }

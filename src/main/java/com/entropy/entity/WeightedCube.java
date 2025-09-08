@@ -18,22 +18,25 @@ import net.minecraft.util.Arm;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 
-import static com.entropy.GatewayGunConstants.*;
+import java.util.Collections;
+
+import static com.entropy.GatewayGunConstants.cubeKills;
+import static com.entropy.GatewayGunConstants.weightedCubeSize;
 
 public class WeightedCube extends LivingEntity {
     public static final String BLOCK_KEY = "block_state";
     public static final TrackedData<BlockState> BLOCK = DataTracker.registerData(WeightedCube.class, TrackedDataHandlerRegistry.BLOCK_STATE);
 
-    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).setDimensions(weightedCubeSize, weightedCubeSize).build("weighted_cube");
+    public static final EntityType<WeightedCube> entityType = EntityType.Builder.create(WeightedCube::new, SpawnGroup.MISC).dimensions(weightedCubeSize, weightedCubeSize).build("weighted_cube");
 
     public WeightedCube(EntityType<WeightedCube> entityEntityType, World world) {
         super(entityEntityType, world);
     }
 
     @Override
-    protected void initDataTracker() {
-        super.initDataTracker();
-        dataTracker.startTracking(BLOCK, Blocks.DIRT.getDefaultState());
+    protected void initDataTracker(DataTracker.Builder builder) {
+        super.initDataTracker(builder);
+        builder.add(BLOCK, Blocks.DIRT.getDefaultState());
     }
 
     @Override
@@ -50,12 +53,7 @@ public class WeightedCube extends LivingEntity {
 
     @Override
     public Iterable<ItemStack> getArmorItems() {
-        return EMPTY_STACK_LIST;
-    }
-
-    @Override
-    public Iterable<ItemStack> getItemsEquipped() {
-        return EMPTY_STACK_LIST;
+        return Collections::emptyIterator;
     }
 
     @Override

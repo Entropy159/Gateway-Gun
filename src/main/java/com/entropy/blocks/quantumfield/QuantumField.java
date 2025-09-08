@@ -135,10 +135,10 @@ public class QuantumField extends BlockWithEntity implements BlockEntityProvider
                 for (int s = 0; s < player.getInventory().size(); s++) {
                     ItemStack stack = player.getInventory().getStack(s);
                     if (stack.getItem() instanceof GatewayGun) {
-                        CoreData data = CoreData.fromTag(stack.getOrCreateNbt(), false);
+                        CoreData data = CoreData.get(stack, false);
                         GatewayRecord record = GatewayRecord.get();
-                        record.data.remove(new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.ONE));
-                        record.data.remove(new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.TWO));
+                        record.data.remove(new GatewayRecord.GatewayID(data.code(), GatewayRecord.GatewaySide.ONE));
+                        record.data.remove(new GatewayRecord.GatewayID(data.code(), GatewayRecord.GatewaySide.TWO));
                         record.setDirty(true);
                         cleared = true;
                     }
@@ -179,7 +179,7 @@ public class QuantumField extends BlockWithEntity implements BlockEntityProvider
         VoxelShape voxelShape7 = VoxelShapes.union(voxelShape3, voxelShape4);
         VoxelShape[] voxelShapes = new VoxelShape[]{VoxelShapes.empty(), voxelShape3, voxelShape4, voxelShape7, voxelShape2, VoxelShapes.union(voxelShape3, voxelShape2), VoxelShapes.union(voxelShape4, voxelShape2), VoxelShapes.union(voxelShape7, voxelShape2), voxelShape5, VoxelShapes.union(voxelShape3, voxelShape5), VoxelShapes.union(voxelShape4, voxelShape5), VoxelShapes.union(voxelShape7, voxelShape5), voxelShape6, VoxelShapes.union(voxelShape3, voxelShape6), VoxelShapes.union(voxelShape4, voxelShape6), VoxelShapes.union(voxelShape7, voxelShape6)};
 
-        for(int j = 0; j < 16; ++j) {
+        for (int j = 0; j < 16; ++j) {
             voxelShapes[j] = VoxelShapes.union(voxelShape, voxelShapes[j]);
         }
 
@@ -219,7 +219,7 @@ public class QuantumField extends BlockWithEntity implements BlockEntityProvider
     }
 
     @Override
-    public boolean canPathfindThrough(BlockState state, BlockView world, BlockPos pos, NavigationType type) {
+    public boolean canPathfindThrough(BlockState state, NavigationType type) {
         return !state.get(ENABLED);
     }
 

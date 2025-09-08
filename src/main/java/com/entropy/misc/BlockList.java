@@ -1,5 +1,7 @@
 package com.entropy.misc;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public record BlockList(List<String> list) {
+    public static final Codec<BlockList> CODEC = RecordCodecBuilder.create(builder -> builder.group(Codec.STRING.listOf().fieldOf("list").forGetter(BlockList::list)).apply(builder, BlockList::new));
+
     public static BlockList createDefault() {
         return new BlockList(new ArrayList<>());
     }
@@ -46,10 +50,7 @@ public record BlockList(List<String> list) {
 
     public static Collection<Block> parseBlockStr(String str) {
         if (str.startsWith("#")) {
-            TagKey<Block> tagKey = TagKey.of(
-                    Registries.BLOCK.getKey(),
-                    new Identifier(str.substring(1))
-            );
+            TagKey<Block> tagKey = TagKey.of(Registries.BLOCK.getKey(), Identifier.of(str.substring(1)));
             Optional<RegistryEntryList.Named<Block>> named = Registries.BLOCK.getEntryList(tagKey);
             if (named.isEmpty()) {
                 return Collections.emptyList();
@@ -58,7 +59,7 @@ public record BlockList(List<String> list) {
                 return holderSet.stream().map(RegistryEntry::value).toList();
             }
         } else {
-            Optional<Block> optional = Registries.BLOCK.getOrEmpty(new Identifier(str));
+            Optional<Block> optional = Registries.BLOCK.getOrEmpty(Identifier.of(str));
             return optional.<Collection<Block>>map(Collections::singletonList).orElse(Collections.emptyList());
         }
     }

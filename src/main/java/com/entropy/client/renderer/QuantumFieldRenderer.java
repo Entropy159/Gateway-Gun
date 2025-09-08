@@ -38,7 +38,7 @@ public class QuantumFieldRenderer implements BlockEntityRenderer<QuantumFieldBlo
         }
         Uniform posUniform = GatewayShaders.quantumFieldShader.getUniform("Pos");
         if (posUniform != null) {
-            posUniform.set((float)pos.getX(), (float)pos.getY(), (float)pos.getZ());
+            posUniform.set((float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
         }
         RenderLayer layer = GatewayShaders.quantumField();
         if (GatewayGunConfig.get().staticQuantumFieldRendering) layer = RenderLayer.getTranslucent();

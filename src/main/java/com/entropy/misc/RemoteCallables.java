@@ -11,13 +11,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Hand;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
+
+import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 
 public class RemoteCallables {
     public static void onClientLeftClickGatewayGun(ServerPlayerEntity player) {
-        ItemStack itemInHand = player.getStackInHand(Hand.MAIN_HAND);
+        ItemStack itemInHand = player.getMainHandStack();
         if (itemInHand.getItem() == GatewayGunMod.GATEWAY_GUN) {
             ItemCooldownManager cooldowns = player.getItemCooldownManager();
             float cooldownPercent = cooldowns.getCooldownProgress(GatewayGunMod.GATEWAY_GUN, 0);
@@ -33,15 +35,15 @@ public class RemoteCallables {
     }
 
     public static void onClientClearGatewayGun(ServerPlayerEntity player) {
-        if (player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayGun) {
+        if (player.getMainHandStack().getItem() instanceof GatewayGun) {
             GatewayRecord record = GatewayRecord.get();
-            CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), false);
-            GatewayRecord.GatewayID id1 = new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.ONE);
-            GatewayRecord.GatewayID id2 = new GatewayRecord.GatewayID(data.code, GatewayRecord.GatewaySide.TWO);
-            if (data.restrictSide != GatewayRecord.GatewaySide.TWO) {
+            CoreData data = CoreData.get(player.getMainHandStack(), false);
+            GatewayRecord.GatewayID id1 = new GatewayRecord.GatewayID(data.code(), GatewayRecord.GatewaySide.ONE);
+            GatewayRecord.GatewayID id2 = new GatewayRecord.GatewayID(data.code(), GatewayRecord.GatewaySide.TWO);
+            if (data.restrictSide() != GatewayRecord.GatewaySide.TWO) {
                 record.data.remove(id1);
             }
-            if (data.restrictSide != GatewayRecord.GatewaySide.ONE) {
+            if (data.restrictSide() != GatewayRecord.GatewaySide.ONE) {
                 record.data.remove(id2);
             }
             record.setDirty(true);
@@ -49,38 +51,38 @@ public class RemoteCallables {
     }
 
     public static void modifyCore(ServerPlayerEntity player) {
-        ItemStack gunStack = player.getStackInHand(Hand.MAIN_HAND);
+        ItemStack gunStack = player.getMainHandStack();
         if (gunStack.getItem() instanceof GatewayGun) {
             ItemStack offStack = player.getStackInHand(Hand.OFF_HAND);
-            CoreData data = CoreData.fromTag(gunStack.getOrCreateNbt(), false);
-            if (data.hasCore) {
+            CoreData data = CoreData.get(player.getMainHandStack(), false);
+            if (data.hasCore()) {
                 ItemStack newCore = data.toStack(GatewayGunMod.GATEWAY_CORE);
                 if (offStack.isEmpty()) {
                     player.setStackInHand(Hand.OFF_HAND, newCore);
                 } else {
                     player.giveItemStack(newCore);
                 }
-                data.hasCore = false;
+                data = data.withHasCore(false);
                 onClientClearGatewayGun(player);
-                gunStack.setNbt(data.toTag());
+                gunStack.set(GATEWAY_DATA, data);
             } else if (offStack.getItem() instanceof GatewayCore) {
-                gunStack.setNbt(offStack.getNbt());
+                gunStack.set(GATEWAY_DATA, offStack.get(GATEWAY_DATA));
                 player.setStackInHand(Hand.OFF_HAND, ItemStack.EMPTY);
             }
         }
     }
 
     public static void grabEntity(ServerPlayerEntity player, @Nullable UUID uuid) {
-        ItemStack gunStack = player.getStackInHand(Hand.MAIN_HAND);
+        ItemStack gunStack = player.getMainHandStack();
         if (gunStack.getItem() instanceof GatewayGun) {
-            CoreData data = CoreData.fromTag(gunStack.getOrCreateNbt(), false);
-            if (data.grabbedEntityId == null && uuid != null && data.hasCore && data.pickup) {
-                data.grabbedEntityId = uuid;
-                gunStack.setNbt(data.toTag());
+            CoreData data = CoreData.get(player.getMainHandStack(), false);
+            if (data.grabbedEntityId() == null && uuid != null && data.hasCore() && data.pickup()) {
+                data = data.withGrabbed(uuid);
+                gunStack.set(GATEWAY_DATA, data);
                 player.getWorld().playSound(null, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, GatewayGunMod.GRAB_START_EVENT, SoundCategory.PLAYERS, 1.0F, 1.0F);
             } else {
-                data.grabbedEntityId = null;
-                gunStack.setNbt(data.toTag());
+                data = data.withGrabbed(null);
+                gunStack.set(GATEWAY_DATA, data);
                 player.getWorld().playSound(null, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, GatewayGunMod.GRAB_STOP_EVENT, SoundCategory.PLAYERS, 1.0F, 1.0F);
             }
         }

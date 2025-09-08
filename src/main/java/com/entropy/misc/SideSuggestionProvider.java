@@ -1,7 +1,6 @@
 package com.entropy.misc;
 
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -20,7 +19,7 @@ public class SideSuggestionProvider implements SuggestionProvider<ServerCommandS
     }
 
     @Override
-    public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+    public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
         if (CommandSource.shouldSuggest(builder.getRemainingLowerCase(), "one")) {
             builder.suggest("ONE");
         }

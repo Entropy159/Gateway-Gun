@@ -1,7 +1,6 @@
 package com.entropy.client;
 
 import com.entropy.GatewayGunMod;
-import com.entropy.client.renderer.CubeDispenserRenderer;
 import com.entropy.client.renderer.GatewayEntityRenderer;
 import com.entropy.client.renderer.GatewayShaders;
 import com.entropy.client.renderer.WeightedCubeRenderer;
@@ -23,8 +22,6 @@ import net.fabricmc.fabric.api.event.client.player.ClientPreAttackCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.ItemCooldownManager;
@@ -36,8 +33,7 @@ import static com.entropy.GatewayGunMod.id;
 
 @Environment(EnvType.CLIENT)
 public class GatewayGunClient implements ClientModInitializer {
-    public static final EntityModelLayer OVERLAY_MODEL_LAYER =
-            new EntityModelLayer(id("gateway_overlay"), "main");
+    public static final EntityModelLayer OVERLAY_MODEL_LAYER = new EntityModelLayer(id("gateway_overlay"), "main");
 
     public static int airResistance = 90;
 
@@ -77,14 +73,10 @@ public class GatewayGunClient implements ClientModInitializer {
             }
 
             ItemCooldownManager cooldowns = player.getItemCooldownManager();
-            float cooldownPercent = cooldowns.getCooldownProgress(
-                    GatewayGunMod.GATEWAY_GUN, 0
-            );
+            float cooldownPercent = cooldowns.getCooldownProgress(GatewayGunMod.GATEWAY_GUN, 0);
 
             if (cooldownPercent < 0.001) {
-                McRemoteProcedureCall.tellServerToInvoke(
-                        "com.entropy.misc.RemoteCallables.onClientLeftClickGatewayGun"
-                );
+                McRemoteProcedureCall.tellServerToInvoke("com.entropy.misc.RemoteCallables.onClientLeftClickGatewayGun");
             }
 
             return true;

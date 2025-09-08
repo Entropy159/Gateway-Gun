@@ -1,12 +1,8 @@
 package com.entropy.client.renderer;
 
-import java.awt.Color;
-
 import com.entropy.CoreData;
 import com.entropy.GatewayGunMod;
-import com.entropy.GatewayRecord;
 import com.entropy.items.GatewayCore;
-
 import com.entropy.misc.GatewayGunUtils;
 import net.minecraft.client.gl.Uniform;
 import net.minecraft.client.render.OverlayTexture;
@@ -20,30 +16,31 @@ import software.bernie.geckolib.model.DefaultedItemGeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
-import static com.entropy.GatewayGunConstants.*;
+import java.awt.*;
+
+import static com.entropy.GatewayGunConstants.defaultColor1;
+import static com.entropy.GatewayGunConstants.defaultColor2;
+import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 
 public class GatewayCoreRenderer extends GeoItemRenderer<GatewayCore> {
-	public GatewayCoreRenderer() {
-		super(new DefaultedItemGeoModel<>(GatewayGunMod.id("gatewaycore")));
-		
-		addRenderLayer(new GeoRenderLayer<>(this) {
+    public GatewayCoreRenderer() {
+        super(new DefaultedItemGeoModel<>(GatewayGunMod.id("gatewaycore")));
+
+        addRenderLayer(new GeoRenderLayer<>(this) {
             @Override
-            public void render(MatrixStack poseStack, GatewayCore animatable, BakedGeoModel bakedModel,
-                               RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, float partialTick,
-                               int packedLight, int packedOverlay) {
+            public void render(MatrixStack poseStack, GatewayCore animatable, BakedGeoModel bakedModel, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
                 Color color1 = new Color(GatewayGunUtils.hexToInt(defaultColor1));
                 Color color2 = new Color(GatewayGunUtils.hexToInt(defaultColor2));
-                if (currentItemStack.getOrCreateNbt().contains("color1")) {
-                    color1 = new Color(GatewayGunUtils.hexToInt(currentItemStack.getOrCreateNbt().getString("color1")));
-                }
-                if (currentItemStack.getOrCreateNbt().contains("color2")) {
-                    color2 = new Color(GatewayGunUtils.hexToInt(currentItemStack.getOrCreateNbt().getString("color2")));
-                }
-                if (CoreData.fromTag(currentItemStack.getOrCreateNbt(), true).restrictSide == GatewayRecord.GatewaySide.ONE) {
-                    color2 = color1;
-                }
-                if (CoreData.fromTag(currentItemStack.getOrCreateNbt(), true).restrictSide == GatewayRecord.GatewaySide.TWO) {
-                    color1 = color2;
+                CoreData data = currentItemStack.get(GATEWAY_DATA);
+                if (data != null) {
+                    color1 = new Color(GatewayGunUtils.hexToInt(data.color1()));
+                    color2 = new Color(GatewayGunUtils.hexToInt(data.color2()));
+                    switch (data.restrictSide()) {
+                        case ONE -> color2 = color1;
+                        case TWO -> color1 = color2;
+                        case null -> {
+                        }
+                    }
                 }
                 Uniform colorOne = GatewayShaders.gatewayCoreShader.getUniform("ColorOne");
                 if (colorOne != null) {
@@ -54,13 +51,13 @@ public class GatewayCoreRenderer extends GeoItemRenderer<GatewayCore> {
                     colorTwo.set(color2.getRed() / 255f, color2.getGreen() / 255f, color2.getBlue() / 255f);
                 }
                 renderType = GatewayShaders.gatewayCore();
-                getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, renderType, bufferSource.getBuffer(renderType), partialTick, packedLight, OverlayTexture.DEFAULT_UV, 1, 1, 1, 1);
+                getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, renderType, bufferSource.getBuffer(renderType), partialTick, packedLight, OverlayTexture.DEFAULT_UV, 0xFFFFFF);
             }
         });
-	}
-	
-	@Override
-	public RenderLayer getRenderType(GatewayCore animatable, Identifier texture, VertexConsumerProvider bufferSource, float partialTick) {
-		return GatewayShaders.gatewayCore();
-	}
+    }
+
+    @Override
+    public RenderLayer getRenderType(GatewayCore animatable, Identifier texture, VertexConsumerProvider bufferSource, float partialTick) {
+        return GatewayShaders.gatewayCore();
+    }
 }

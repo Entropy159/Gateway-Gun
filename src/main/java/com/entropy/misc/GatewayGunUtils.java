@@ -7,7 +7,6 @@ import com.entropy.entity.Gateway;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import qouteall.imm_ptl.core.McHelper;
@@ -24,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.sizeMult;
 
 public class GatewayGunUtils {
     public static void placeGateway(ServerWorld world, Vec3d pos, Vec3d up, Vec3d right, CoreData data, GatewayRecord.GatewaySide side, IntBox area, IntBox wall, boolean blockPredicate) {
         GatewayRecord record = GatewayRecord.get();
-        GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(data.code, side);
+        GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(data.code(), side);
         GatewayRecord.GatewayID otherSideId = id.getTheOtherSide();
         GatewayRecord.GatewayInfo thisSideInfo = record.data.get(id);
         GatewayRecord.GatewayInfo otherSideInfo = record.data.get(otherSideId);
@@ -46,25 +45,25 @@ public class GatewayGunUtils {
         }
 
         gateway.clearAnimationDrivers(true, true);
-        gateway.setWidth(data.width);
-        gateway.setHeight(data.height);
+        gateway.setWidth(data.width());
+        gateway.setHeight(data.height());
         NormalAnimation anim = NormalAnimation.createSizeAnimation(gateway, new Vec2d(0.01, 0.01), new Vec2d(sizeMult, sizeMult), gateway.getAnimationEffectiveTime(), 5, TimingFunction.easeInOutCubic);
         gateway.addThisSideAnimationDriver(anim);
         gateway.addOtherSideAnimationDriver(anim);
 
         gateway.setOriginPos(pos);
-        gateway.setOrientationAndSize(right, up, data.width, data.height);
+        gateway.setOrientationAndSize(right, up, data.width(), data.height());
         gateway.id = id;
         gateway.wallBox = wall;
         gateway.airBox = area;
-        if (blockPredicate) gateway.setAllowedBlocks(data.allowedBlocks);
+        if (blockPredicate) gateway.setAllowedBlocks(data.allowedBlocks());
         else gateway.setAllowedBlocks(null);
         gateway.thisSideUpdateCounter = thisSideInfo == null ? 0 : thisSideInfo.updateCounter();
         gateway.otherSideUpdateCounter = otherSideInfo == null ? 0 : otherSideInfo.updateCounter();
         PortalManipulation.makePortalRound(gateway, 50);
         gateway.disableDefaultAnimation();
         gateway.customColor = data.getColor(side);
-        gateway.setTeleportChangesGravity(data.gravity);
+        gateway.setTeleportChangesGravity(data.gravity());
 
         if (otherSideInfo == null) {
             // it's unpaired, invisible and not teleportable
@@ -96,14 +95,6 @@ public class GatewayGunUtils {
 
     }
 
-    public static void broadcast(ServerWorld world, String message) {
-        broadcast(world, Text.literal(message));
-    }
-
-    public static void broadcast(ServerWorld world, Text message) {
-        world.getPlayers().forEach(player -> player.sendMessage(message));
-    }
-
     public record PortalRTResult(List<Portal> portals, Vec3d pos) {
     }
 
@@ -127,9 +118,5 @@ public class GatewayGunUtils {
             GatewayGunMod.LOGGER.error(exception.getMessage());
             return 0;
         }
-    }
-
-    public static String intToHex(int num) {
-        return Integer.toHexString(num);
     }
 }

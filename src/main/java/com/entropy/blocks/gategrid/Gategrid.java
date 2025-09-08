@@ -40,9 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.my_util.AARotation;
 import qouteall.q_misc_util.my_util.IntBox;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.gatewayOffset;
 
-@SuppressWarnings("deprecation")
 public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
     public static final DirectionProperty FACING = Properties.FACING;
     public static final BooleanProperty POWERED = Properties.POWERED;
@@ -64,7 +63,7 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
         builder.add(HALF);
     }
 
-    public VoxelShape getShape(BlockState state, BlockView world, BlockPos pos) {
+    public VoxelShape getShape(BlockState state) {
         return switch (state.get(FACING)) {
             case NORTH -> VoxelShapes.cuboid(0, 0, 0, 1, 1, 0.5 / 16);
             case EAST -> VoxelShapes.cuboid(15.5 / 16, 0, 0, 1, 1, 1);
@@ -77,7 +76,7 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return getShape(state, world, pos);
+        return getShape(state);
     }
 
     @Override
@@ -87,18 +86,18 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
 
     @Override
     public VoxelShape getCullingShape(BlockState state, BlockView world, BlockPos pos) {
-        return getShape(state, world, pos);
+        return getShape(state);
     }
 
     @Override
     public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-        return getShape(state, world, pos);
+        return getShape(state);
     }
 
     @Override
     public BlockState onBreak(World w, BlockPos pos, BlockState state, PlayerEntity player) {
-        if(!w.isClient){
-            ServerWorld world = (ServerWorld)w;
+        if (!w.isClient) {
+            ServerWorld world = (ServerWorld) w;
             BlockPos pos2;
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 pos = pos.down();
@@ -110,12 +109,12 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
             BlockEntity entity = world.getBlockEntity(pos);
             if (state.isOf(state.getBlock())) {
                 if (entity instanceof GategridBlockEntity gategrid) {
-                    if(gategrid.data.hasCore){
+                    if (gategrid.data.hasCore()) {
                         Vec3d pos3 = pos.toCenterPos();
                         ItemEntity core = new ItemEntity(world, pos3.x, pos3.y, pos3.z, gategrid.data.toStack(GatewayGunMod.GATEWAY_CORE));
                         world.spawnEntity(core);
                         GatewayRecord record = GatewayRecord.get();
-                        GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(gategrid.data.code, gategrid.data.restrictSide == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide);
+                        GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(gategrid.data.code(), gategrid.data.restrictSide() == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide());
                         record.data.remove(id);
                         record.setDirty(true);
                     }
@@ -147,7 +146,7 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
     }
 
     @Override
-    public @NotNull ActionResult onUse(@NotNull BlockState state, @NotNull World level, @NotNull BlockPos pos, @NotNull PlayerEntity player, @NotNull Hand hand, @NotNull BlockHitResult hit) {
+    protected @NotNull ActionResult onUse(@NotNull BlockState state, @NotNull World level, @NotNull BlockPos pos, @NotNull PlayerEntity player, @NotNull BlockHitResult hit) {
         if (!level.isClient) {
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 pos = pos.down();
@@ -155,18 +154,18 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
             }
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof GategridBlockEntity gategrid && !state.get(POWERED)) {
-                ItemStack held = player.getStackInHand(hand);
-                if (gategrid.data.hasCore) {
+                ItemStack held = player.getMainHandStack();
+                if (gategrid.data.hasCore()) {
                     ItemStack newCore = gategrid.data.toStack(GatewayGunMod.GATEWAY_CORE);
                     if (held.isEmpty()) {
-                        player.setStackInHand(hand, newCore);
+                        player.setStackInHand(Hand.MAIN_HAND, newCore);
                     } else {
                         player.giveItemStack(newCore);
                     }
                     gategrid.data = new CoreData(false);
                 } else if (held.getItem() instanceof GatewayCore) {
-                    gategrid.data = CoreData.fromTag(held.getOrCreateNbt(), false);
-                    player.setStackInHand(hand, ItemStack.EMPTY);
+                    gategrid.data = CoreData.get(held, false);
+                    player.setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
                 }
                 level.updateListeners(pos, state, state, 0);
             }
@@ -180,20 +179,20 @@ public class Gategrid extends BlockWithEntity implements BlockEntityProvider {
         if (!world.isClient) {
             ServerWorld server = (ServerWorld) world;
             BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof GategridBlockEntity gategrid && gategrid.data.hasCore && state.get(HALF) == DoubleBlockHalf.LOWER) {
+            if (entity instanceof GategridBlockEntity gategrid && gategrid.data.hasCore() && state.get(HALF) == DoubleBlockHalf.LOWER) {
                 GatewayRecord record = GatewayRecord.get();
                 if (world.isReceivingRedstonePower(pos) && !state.get(POWERED)) {
                     Direction right = state.get(FACING).rotateYClockwise();
                     Direction up = Direction.UP;
                     AARotation rot = AARotation.getAARotationFromYZ(up, right);
-                    BlockPos transformedSize = rot.transform(new BlockPos(gategrid.data.width, gategrid.data.height, 1));
+                    BlockPos transformedSize = rot.transform(new BlockPos(gategrid.data.width(), gategrid.data.height(), 1));
                     IntBox portalArea = IntBox.getBoxByPosAndSignedSize(pos, transformedSize);
                     IntBox wallArea = portalArea.getMoved(state.get(FACING).getOpposite().getVector());
-                    GatewayGunUtils.placeGateway(server, pos.toCenterPos().add(0, 0.5, 0).add(Vec3d.of(state.get(FACING).getVector()).multiply(0.5 - gatewayOffset)), Vec3d.of(up.getVector()), Vec3d.of(right.getVector()), gategrid.data, gategrid.data.restrictSide == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide, portalArea, wallArea, false);
+                    GatewayGunUtils.placeGateway(server, pos.toCenterPos().add(0, 0.5, 0).add(Vec3d.of(state.get(FACING).getVector()).multiply(0.5 - gatewayOffset)), Vec3d.of(up.getVector()), Vec3d.of(right.getVector()), gategrid.data, gategrid.data.restrictSide() == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide(), portalArea, wallArea, false);
                     world.playSound(null, pos, GatewayGunMod.GATEWAY_OPEN_EVENT, SoundCategory.BLOCKS, 1, 1);
                     world.setBlockState(pos, state.with(POWERED, true));
                 } else if (!world.isReceivingRedstonePower(pos) && state.get(POWERED)) {
-                    GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(gategrid.data.code, gategrid.data.restrictSide == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide);
+                    GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(gategrid.data.code(), gategrid.data.restrictSide() == null ? GatewayRecord.GatewaySide.TWO : gategrid.data.restrictSide());
                     record.data.remove(id);
                     world.playSound(null, pos, GatewayGunMod.GATEWAY_CLOSE_EVENT, SoundCategory.BLOCKS, 1, 1);
                     world.setBlockState(pos, state.with(POWERED, false));

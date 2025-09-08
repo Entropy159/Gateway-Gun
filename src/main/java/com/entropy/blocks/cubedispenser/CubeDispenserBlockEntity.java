@@ -11,13 +11,14 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.dispenserDelayTicks;
 
 public class CubeDispenserBlockEntity extends BlockEntity {
     public BlockState state = Blocks.QUARTZ_BLOCK.getDefaultState();
@@ -29,16 +30,16 @@ public class CubeDispenserBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         nbt.put("block_state", NbtHelper.fromBlockState(state));
         if (uuid != null) nbt.putUuid("uuid", uuid);
         nbt.putInt("ticks", delayTicks);
-        super.writeNbt(nbt);
+        super.writeNbt(nbt, registryLookup);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.readNbt(nbt, registryLookup);
         if (getWorld() != null) {
             state = NbtHelper.toBlockState(getWorld().createCommandRegistryWrapper(RegistryKeys.BLOCK), nbt.getCompound("block_state"));
         }
@@ -52,8 +53,8 @@ public class CubeDispenserBlockEntity extends BlockEntity {
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt() {
-        return createNbt();
+    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {
+        return createNbt(registryLookup);
     }
 
     public void spawnCube(boolean overwrite) {
@@ -64,10 +65,12 @@ public class CubeDispenserBlockEntity extends BlockEntity {
             if (world.getEntity(uuid) != null) world.getEntity(uuid).kill();
         }
         WeightedCube cube = WeightedCube.entityType.create(getWorld());
-        cube.setPosition(getPos().toCenterPos().subtract(0, cube.getBoundingBox().getLengthY()/2, 0));
-        cube.getDataTracker().set(WeightedCube.BLOCK, state);
-        getWorld().spawnEntity(cube);
-        uuid = cube.getUuid();
-        delayTicks = dispenserDelayTicks;
+        if (cube != null) {
+            cube.setPosition(getPos().toCenterPos().subtract(0, cube.getBoundingBox().getLengthY() / 2, 0));
+            cube.getDataTracker().set(WeightedCube.BLOCK, state);
+            getWorld().spawnEntity(cube);
+            uuid = cube.getUuid();
+            delayTicks = dispenserDelayTicks;
+        }
     }
 }

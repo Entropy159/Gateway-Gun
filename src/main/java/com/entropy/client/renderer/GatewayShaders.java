@@ -3,10 +3,8 @@ package com.entropy.client.renderer;
 import com.entropy.GatewayGunMod;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.Identifier;
 
 import java.io.IOException;
 

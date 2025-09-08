@@ -2,12 +2,11 @@ package com.entropy.items;
 
 import com.entropy.CoreData;
 import com.entropy.client.renderer.GatewayCoreRenderer;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.random.Random;
@@ -15,16 +14,17 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
-import software.bernie.geckolib.animatable.client.RenderProvider;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager.ControllerRegistrar;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+
+import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 
 public class GatewayCore extends Item implements GeoItem {
 
@@ -32,33 +32,29 @@ public class GatewayCore extends Item implements GeoItem {
 
     private static final RawAnimation SPIN_ANIM = RawAnimation.begin().thenLoop("idle");
 
-    private final Supplier<Object> renderProvider = GeoItem.makeRenderer(this);
-
     public GatewayCore() {
-        super(new FabricItemSettings().fireproof().maxCount(1).rarity(Rarity.EPIC));
+        super(new Item.Settings().fireproof().maxCount(1).rarity(Rarity.EPIC).component(GATEWAY_DATA, new CoreData(true)));
 
         SingletonGeoAnimatable.registerSyncedAnimatable(this);
     }
 
     @Override
-    public void createRenderer(Consumer<Object> consumer) {
-        consumer.accept(new RenderProvider() {
-            private final GatewayCoreRenderer renderer = new GatewayCoreRenderer();
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private GatewayCoreRenderer renderer;
 
             @Override
-            public BuiltinModelItemRenderer getCustomRenderer() {
-                return this.renderer;
+            public @NotNull BuiltinModelItemRenderer getGeoItemRenderer() {
+                if (renderer == null) {
+                    renderer = new GatewayCoreRenderer();
+                }
+                return renderer;
             }
         });
     }
 
     @Override
-    public Supplier<Object> getRenderProvider() {
-        return this.renderProvider;
-    }
-
-    @Override
-    public void registerControllers(ControllerRegistrar controllers) {
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "gatewayCoreController", 1, state -> state.setAndContinue(SPIN_ANIM)));
     }
 
@@ -68,23 +64,22 @@ public class GatewayCore extends Item implements GeoItem {
     }
 
     @Override
-    public void appendTooltip(@NotNull ItemStack stack, World level, @NotNull List<Text> tooltip, @NotNull TooltipContext isAdvanced) {
-        super.appendTooltip(stack, level, tooltip, isAdvanced);
-
-        CoreData.fromTag(stack.getOrCreateNbt(), true).setTooltip(tooltip);
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, tooltip, type);
+        CoreData.get(stack, true).setTooltip(tooltip);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
         if (!world.isClient) {
-            if (!stack.hasNbt()) {
-                stack.setNbt(new CoreData(true).toTag());
+            if (!stack.contains(GATEWAY_DATA)) {
+                stack.set(GATEWAY_DATA, new CoreData(true));
             }
-            CoreData data = CoreData.fromTag(stack.getOrCreateNbt(), true);
-            if (data.code <= 0) {
-                data.code = Random.create().nextInt(Integer.MAX_VALUE);
-                stack.setNbt(data.toTag());
+            CoreData data = CoreData.get(stack, true);
+            if (data.code() <= 0) {
+                data = data.withCode(Random.create().nextInt(Integer.MAX_VALUE));
+                stack.set(GATEWAY_DATA, data);
             }
         }
     }

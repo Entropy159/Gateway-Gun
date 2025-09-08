@@ -8,6 +8,7 @@ import com.entropy.entity.GatewayGunBlockEntities;
 import com.entropy.entity.WeightedCube;
 import com.entropy.items.GatewayCore;
 import com.entropy.items.GatewayGun;
+import com.entropy.items.GatewayGunComponents;
 import com.entropy.misc.BlockList;
 import com.entropy.misc.SideSuggestionProvider;
 import com.mojang.brigadier.Command;
@@ -16,17 +17,16 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -34,19 +34,19 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.api.McRemoteProcedureCall;
 import qouteall.q_misc_util.my_util.IntBox;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
@@ -57,7 +57,6 @@ import static net.minecraft.command.argument.BlockStateArgumentType.blockState;
 import static net.minecraft.command.argument.BlockStateArgumentType.getBlockState;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
-import static com.entropy.GatewayGunConstants.*;
 
 public class GatewayGunMod implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
@@ -86,10 +85,7 @@ public class GatewayGunMod implements ModInitializer {
     public static final SoundEvent GRAB_STOP_EVENT = SoundEvent.of(GRAB_STOP);
 
     public static final RegistryKey<ItemGroup> TAB_KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(), id("general"));
-    public static final ItemGroup TAB = FabricItemGroup.builder()
-            .icon(() -> new ItemStack(GatewayGunMod.GATEWAY_GUN))
-            .displayName(Text.translatable("gatewaygun.item_group"))
-            .build();
+    public static final ItemGroup TAB = FabricItemGroup.builder().icon(() -> new ItemStack(GatewayGunMod.GATEWAY_GUN)).displayName(Text.translatable("gatewaygun.item_group")).build();
 
     public static final SimpleCommandExceptionType NOT_GATE_CORE = new SimpleCommandExceptionType(Text.translatable("fail.nocore"));
     public static final SimpleCommandExceptionType BAD_COLOR = new SimpleCommandExceptionType(Text.translatable("fail.badcolor"));
@@ -97,21 +93,19 @@ public class GatewayGunMod implements ModInitializer {
     public static final SimpleCommandExceptionType BAD_BLOCK = new SimpleCommandExceptionType(Text.translatable("fail.badblock"));
 
     public static Identifier id(String path) {
-        return new Identifier(MODID, path);
+        return Identifier.of(MODID, path);
     }
 
     public static boolean isAreaClear(World world, IntBox airBox1) {
-        return airBox1.fastStream().allMatch(
-                p -> world.getBlockState(p).getCollisionShape(world, p).isEmpty()
-        );
+        return airBox1.fastStream().allMatch(p -> world.getBlockState(p).getCollisionShape(world, p).isEmpty());
     }
 
     public static void registerBlock(String name, Block block, String tooltipTranslation) {
         Registry.register(Registries.BLOCK, id(name), block);
-        Registry.register(Registries.ITEM, id(name), new BlockItem(block, new FabricItemSettings().rarity(Rarity.EPIC)) {
+        Registry.register(Registries.ITEM, id(name), new BlockItem(block, new BlockItem.Settings().rarity(Rarity.EPIC)) {
             @Override
-            public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-                super.appendTooltip(stack, world, tooltip, context);
+            public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+                super.appendTooltip(stack, context, tooltip, type);
                 tooltip.add(Text.translatable(tooltipTranslation));
             }
         });
@@ -120,6 +114,8 @@ public class GatewayGunMod implements ModInitializer {
     @Override
     public void onInitialize() {
         AutoConfig.register(GatewayGunConfig.class, JanksonConfigSerializer::new);
+
+        GatewayGunComponents.init();
 
         registerBlock("gategrid", GATEGRID, "block.gatewaygun.gategrid_desc");
         registerBlock("quantumfield", QUANTUM_FIELD, "block.gatewaygun.quantumfield_desc");
@@ -136,135 +132,139 @@ public class GatewayGunMod implements ModInitializer {
             return Command.SINGLE_SUCCESS;
         }))));
         CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> dispatcher.register(literal("core").then(literal("color1").then(argument("color", string()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 String col = getString(ctx, "color");
                 try {
                     Integer.parseUnsignedInt(col, 16);
                 } catch (NumberFormatException e) {
                     throw BAD_COLOR.create();
                 }
-                data.color1 = col;
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Color 1 set to " + data.color1), true);
+                data = data.withColor1(col);
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Color 1 set to " + data.color1()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("color2").then(argument("color", string()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 String col = getString(ctx, "color");
                 try {
                     Integer.parseUnsignedInt(col, 16);
                 } catch (NumberFormatException e) {
                     throw BAD_COLOR.create();
                 }
-                data.color2 = col;
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Color 2 set to " + data.color2), true);
+                data = data.withColor2(col);
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Color 2 set to " + data.color2()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("width").then(argument("width", integer()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 int width = getInteger(ctx, "width");
                 if (width < 1) {
                     throw BAD_SIZE.create();
                 }
-                data.width = width;
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Width set to " + data.width), true);
+                data = data.withWidth(width);
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Width set to " + data.width()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("height").then(argument("height", integer()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 int height = getInteger(ctx, "height");
                 if (height < 1) {
                     throw BAD_SIZE.create();
                 }
-                data.height = height;
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Height set to " + data.height), true);
+                data = data.withHeight(height);
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Height set to " + data.height()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("gravity").then(argument("gravity", bool()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
-                data.gravity = getBool(ctx, "gravity");
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Gravity set to " + data.gravity), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
+                data = data.withGravity(getBool(ctx, "gravity"));
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Gravity set to " + data.gravity()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("gatecode").then(argument("code", integer()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
-                data.code = getInteger(ctx, "code");
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Code set to " + data.code), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
+                data = data.withCode(getInteger(ctx, "code"));
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Code set to " + data.code()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("pickup").then(argument("pickup", bool()).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
-                data.pickup = getBool(ctx, "pickup");
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Pickup set to " + data.pickup), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
+                data = data.withPickup(getBool(ctx, "pickup"));
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Pickup set to " + data.pickup()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("blocks").then(literal("list").executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 player.sendMessage(Text.literal("Allowed blocks:").formatted(Formatting.DARK_AQUA));
-                for (String block : data.allowedBlocks.list()) {
+                for (String block : data.allowedBlocks().list()) {
                     player.sendMessage(Text.literal(block).formatted(Formatting.AQUA));
                 }
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         })).then(literal("add").then(argument("block", blockState(access)).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 Optional<RegistryKey<Block>> op = getBlockState(ctx, "block").getBlockState().getRegistryEntry().getKey();
                 if (op.isEmpty()) {
                     throw BAD_BLOCK.create();
                 }
                 String block = op.get().getValue().toString();
-                data.allowedBlocks.list().add(block);
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
+                List<String> blocks = data.allowedBlocks().list();
+                blocks.add(block);
+                data = data.withBlockList(new BlockList(blocks));
+                player.getMainHandStack().set(GATEWAY_DATA, data);
                 player.sendMessage(Text.literal("Added block " + block + " to allowlist"), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         }))).then(literal("remove").then(argument("block", blockState(access)).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
                 Optional<RegistryKey<Block>> op = getBlockState(ctx, "block").getBlockState().getRegistryEntry().getKey();
                 if (op.isEmpty()) {
                     throw BAD_BLOCK.create();
                 }
                 String block = op.get().getValue().toString();
-                data.allowedBlocks.list().remove(block);
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
+                List<String> blocks = data.allowedBlocks().list();
+                blocks.remove(block);
+                data = data.withBlockList(new BlockList(blocks));
+                player.getMainHandStack().set(GATEWAY_DATA, data);
                 player.sendMessage(Text.literal("Removed block " + block + " from allowlist"), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
         })))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider(false, true)).executes(ctx -> {
-            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GatewayCore) {
-                CoreData data = CoreData.fromTag(player.getStackInHand(Hand.MAIN_HAND).getOrCreateNbt(), true);
-                data.restrictSide = GatewayRecord.GatewaySide.fromString(getString(ctx, "side"));
+            if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
+                CoreData data = CoreData.get(player.getMainHandStack(), true);
+                data = data.withRestrictSide(GatewayRecord.GatewaySide.fromString(getString(ctx, "side")));
                 if ("NONE".equals(getString(ctx, "side"))) {
-                    data.restrictSide = null;
+                    data = data.withRestrictSide(null);
                 }
-                player.getStackInHand(Hand.MAIN_HAND).setNbt(data.toTag());
-                player.sendMessage(Text.literal("Side set to " + data.restrictSide), true);
+                player.getMainHandStack().set(GATEWAY_DATA, data);
+                player.sendMessage(Text.literal("Side set to " + data.restrictSide()), true);
                 return Command.SINGLE_SUCCESS;
             }
             throw NOT_GATE_CORE.create();
@@ -328,8 +328,8 @@ public class GatewayGunMod implements ModInitializer {
             entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, GatewayRecord.GatewaySide.ONE).toStack(GATEWAY_GUN));
             entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, GatewayRecord.GatewaySide.ONE).toStack(GATEWAY_CORE));
 
-            entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, defaultWidth, defaultHeight, 0, null, true, null, false).toStack(GATEWAY_GUN));
-            entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, defaultWidth, defaultHeight, 0, null, true, null, false).toStack(GATEWAY_CORE));
+            entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, defaultWidth, defaultHeight, false, false, 0, true, null, null).toStack(GATEWAY_GUN));
+            entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, defaultWidth, defaultHeight, false, false, 0, true, null, null).toStack(GATEWAY_CORE));
 
             entries.add(new CoreData(false).toStack(GATEGRID));
             entries.add(new ItemStack(QUANTUM_FIELD));

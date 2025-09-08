@@ -20,7 +20,7 @@ public class GatewayOverlayModel extends EntityModel<Gateway> {
 
         ModelPartData base = modelPartData.addChild("base", ModelPartBuilder.create(), ModelTransform.of(0.0F, 8, 0.0F, 0.0F, 0.0F, 0.0F));
 
-        base.addChild("cube_r1", ModelPartBuilder.create().uv(0,8).cuboid(-8.0F, -8.0F, 0.0F, 16.0F, 16.0F, 0.0F, new Dilation(0.0F)).mirrored(), ModelTransform.of(0.0F, -8.0F, 0.0F, 0.0F, (float) Math.PI, 0.0F));
+        base.addChild("cube_r1", ModelPartBuilder.create().uv(0, 8).cuboid(-8.0F, -8.0F, 0.0F, 16.0F, 16.0F, 0.0F, new Dilation(0.0F)).mirrored(), ModelTransform.of(0.0F, -8.0F, 0.0F, 0.0F, (float) Math.PI, 0.0F));
         return modelData;
     }
 
@@ -34,7 +34,7 @@ public class GatewayOverlayModel extends EntityModel<Gateway> {
     }
 
     @Override
-    public void render(@NotNull MatrixStack matrixStack, @NotNull VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        base.render(matrixStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    public void render(@NotNull MatrixStack matrixStack, @NotNull VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        base.render(matrixStack, buffer, packedLight, packedOverlay, color);
     }
 }

@@ -4,6 +4,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -18,7 +19,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.defaultColor1;
+import static com.entropy.GatewayGunConstants.defaultColor2;
 
 public class GatewayRecord extends PersistentState {
     public enum GatewaySide {
@@ -56,10 +58,7 @@ public class GatewayRecord extends PersistentState {
         }
 
         public static GatewayID fromTag(NbtCompound tag) {
-            return new GatewayID(
-                    tag.getInt("code"),
-                    GatewaySide.fromString(tag.getString("side"))
-            );
+            return new GatewayID(tag.getInt("code"), GatewaySide.fromString(tag.getString("side")));
         }
 
         public GatewayID getTheOtherSide() {
@@ -67,18 +66,12 @@ public class GatewayRecord extends PersistentState {
         }
 
         @Override
-        public String toString() {
-            return "GatewayID: channel "+code+", side "+side.name();
+        public @NotNull String toString() {
+            return "GatewayID: channel " + code + ", side " + side.name();
         }
     }
 
-    public record GatewayInfo(
-            UUID id,
-            RegistryKey<World> dim,
-            Vec3d pos,
-            DQuaternion orientation,
-            int updateCounter
-    ) {
+    public record GatewayInfo(UUID id, RegistryKey<World> dim, Vec3d pos, DQuaternion orientation, int updateCounter) {
         NbtCompound toTag() {
             NbtCompound tag = new NbtCompound();
             tag.putUuid("id", id);
@@ -92,20 +85,7 @@ public class GatewayRecord extends PersistentState {
         }
 
         static GatewayInfo fromTag(NbtCompound tag) {
-            return new GatewayInfo(
-                    tag.getUuid("id"),
-                    RegistryKey.of(
-                            RegistryKeys.WORLD,
-                            new Identifier(tag.getString("dim"))
-                    ),
-                    new Vec3d(
-                            tag.getDouble("x"),
-                            tag.getDouble("y"),
-                            tag.getDouble("z")
-                    ),
-                    DQuaternion.fromTag(tag.getCompound("orientation")),
-                    tag.getInt("updateCounter")
-            );
+            return new GatewayInfo(tag.getUuid("id"), RegistryKey.of(RegistryKeys.WORLD, Identifier.of(tag.getString("dim"))), new Vec3d(tag.getDouble("x"), tag.getDouble("y"), tag.getDouble("z")), DQuaternion.fromTag(tag.getCompound("orientation")), tag.getInt("updateCounter"));
         }
     }
 
@@ -121,21 +101,14 @@ public class GatewayRecord extends PersistentState {
     public static GatewayRecord get() {
         ServerWorld overworld = MiscHelper.getServer().getOverworld();
 
-        return overworld.getPersistentStateManager().getOrCreate(
-                new PersistentState.Type<>(
-                        () -> {
-                            GatewayGunMod.LOGGER.info("Gateway record initialized ");
-                            return new GatewayRecord(new HashMap<>(), 90);
-                        },
-                        GatewayRecord::load,
-                        null
-                ),
-                "gateway_record"
-        );
+        return overworld.getPersistentStateManager().getOrCreate(new PersistentState.Type<>(() -> {
+            GatewayGunMod.LOGGER.info("Gateway record initialized ");
+            return new GatewayRecord(new HashMap<>(), 90);
+        }, GatewayRecord::load, null), "gateway_record");
     }
 
     @Override
-    public @NotNull NbtCompound writeNbt(NbtCompound compoundTag) {
+    public @NotNull NbtCompound writeNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup registryWrapper) {
         NbtList dataTag = new NbtList();
 
         data.forEach((key, value) -> {
@@ -152,16 +125,11 @@ public class GatewayRecord extends PersistentState {
         return compoundTag;
     }
 
-    public static GatewayRecord load(NbtCompound compoundTag) {
+    public static GatewayRecord load(NbtCompound compoundTag, RegistryWrapper.WrapperLookup registryWrapper) {
         NbtList dataTag = compoundTag.getList("data", 10);
 
         try {
-            Map<GatewayID, GatewayInfo> data = dataTag.stream()
-                    .map(NbtCompound.class::cast)
-                    .collect(Collectors.toMap(
-                            entryTag -> GatewayID.fromTag(entryTag.getCompound("key")),
-                            entryTag -> GatewayInfo.fromTag(entryTag.getCompound("value"))
-                    ));
+            Map<GatewayID, GatewayInfo> data = dataTag.stream().map(NbtCompound.class::cast).collect(Collectors.toMap(entryTag -> GatewayID.fromTag(entryTag.getCompound("key")), entryTag -> GatewayInfo.fromTag(entryTag.getCompound("value"))));
 
             return new GatewayRecord(data, compoundTag.getInt("airResistance"));
         } catch (Exception e) {

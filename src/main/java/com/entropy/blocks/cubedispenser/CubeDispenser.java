@@ -18,7 +18,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -42,11 +41,11 @@ public class CubeDispenser extends BlockWithEntity implements BlockEntityProvide
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!world.isClient) {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof CubeDispenserBlockEntity dispenser) {
-                if (player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof BlockItem item) {
+                if (player.getMainHandStack().getItem() instanceof BlockItem item) {
                     dispenser.state = item.getBlock().getDefaultState();
                     dispenser.markDirty();
                     world.updateListeners(pos, state, state, 0);

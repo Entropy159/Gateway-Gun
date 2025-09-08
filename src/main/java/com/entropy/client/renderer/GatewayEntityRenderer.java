@@ -1,12 +1,10 @@
 package com.entropy.client.renderer;
 
+import com.entropy.GatewayGunConfig;
 import com.entropy.client.GatewayGunClient;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
-import com.entropy.GatewayGunConfig;
 import com.entropy.entity.Gateway;
-import com.entropy.items.GatewayGun;
 import com.entropy.misc.GatewayGunUtils;
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -19,7 +17,8 @@ import qouteall.q_misc_util.my_util.DQuaternion;
 
 import java.awt.*;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.overlayOffset;
+import static com.entropy.GatewayGunConstants.sizeMult;
 import static com.entropy.GatewayGunMod.id;
 
 public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
@@ -73,7 +72,7 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
                 matrices,
                 consumer,
                 LightmapTextureManager.pack(15, 15),
-                OverlayTexture.DEFAULT_UV, r, g, b, alpha
+                OverlayTexture.DEFAULT_UV, new Color(r, g, b, alpha).getRGB()
         );
 
         matrices.scale(1 / scale1, 1 / scale2, 1 / scale3);

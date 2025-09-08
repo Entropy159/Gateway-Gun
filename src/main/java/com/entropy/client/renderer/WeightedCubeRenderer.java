@@ -1,6 +1,5 @@
 package com.entropy.client.renderer;
 
-import com.entropy.GatewayGunMod;
 import com.entropy.entity.WeightedCube;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -11,12 +10,12 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-import static com.entropy.GatewayGunConstants.*;
+import static com.entropy.GatewayGunConstants.weightedCubeSize;
 
 public class WeightedCubeRenderer extends EntityRenderer<WeightedCube> {
     public final BlockRenderManager manager;
 
-    public WeightedCubeRenderer(EntityRendererFactory.Context context){
+    public WeightedCubeRenderer(EntityRendererFactory.Context context) {
         super(context);
         manager = context.getBlockRenderManager();
     }
@@ -27,7 +26,7 @@ public class WeightedCubeRenderer extends EntityRenderer<WeightedCube> {
         matrices.push();
         float scale = weightedCubeSize;
         matrices.scale(scale, scale, scale);
-        matrices.translate(-0.5,0,-0.5);
+        matrices.translate(-0.5, 0, -0.5);
         manager.renderBlockAsEntity(entity.getDataTracker().get(WeightedCube.BLOCK), matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
         matrices.pop();
     }
