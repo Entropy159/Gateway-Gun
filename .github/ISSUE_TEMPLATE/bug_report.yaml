@@ -3,7 +3,7 @@ description: File a bug report
 body:
   - type: markdown
     attributes:
-      value: "To know whether it's a mod compatibility issue, please remove all other mods and keep only PortalGun and Immersive Portals and Fabric API, backup your world, and then test again whether the issue occurs. Thanks for cooperation."
+      value: "To know whether it's a mod compatibility issue, please remove all other mods and keep only Gateway Gun and it's dependencies, backup your world, and then test again whether the issue occurs. Thanks for cooperation."
   - type: dropdown
     id: only_immptl_and_portalgun
     attributes:
@@ -24,6 +24,6 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Post the log here
+      label: Post the mclo.gs link here
       description: The log is `latest.log` in `logs` folder in the game directory. The log provides useful information (including the mod list) for debugging the issue. Upload to mclo.gs and share the link to not clog the issue.
       render: shell
