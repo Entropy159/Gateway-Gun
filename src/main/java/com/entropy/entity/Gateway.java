@@ -1,5 +1,8 @@
 package com.entropy.entity;
 
+import com.entropy.GatewayGunMod;
+import com.entropy.GatewayRecord;
+import com.entropy.misc.BlockList;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -13,11 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.entropy.GatewayGunMod;
-import com.entropy.GatewayRecord;
-import com.entropy.misc.BlockList;
-
 import qouteall.imm_ptl.core.portal.Portal;
 import qouteall.q_misc_util.my_util.IntBox;
 
@@ -40,7 +38,7 @@ public class Gateway extends Portal {
     public int thisSideUpdateCounter = 0;
     public int otherSideUpdateCounter = 0;
 
-    public @Nullable String customColor;
+    public @Nullable Integer customColor;
 
     private BiPredicate<World, BlockPos> wallPredicate;
 
@@ -57,7 +55,9 @@ public class Gateway extends Portal {
         setAllowedBlocks(BlockList.fromTag(compoundTag.getList("allowedBlocks", NbtElement.STRING_TYPE)));
         thisSideUpdateCounter = compoundTag.getInt("thisSideUpdateCounter");
         otherSideUpdateCounter = compoundTag.getInt("otherSideUpdateCounter");
-        customColor = compoundTag.getString("customColor");
+        if (compoundTag.contains("customColor")) {
+            customColor = compoundTag.getInt("customColor");
+        }
     }
 
     @Override
@@ -70,7 +70,7 @@ public class Gateway extends Portal {
         compoundTag.putInt("thisSideUpdateCounter", thisSideUpdateCounter);
         compoundTag.putInt("otherSideUpdateCounter", otherSideUpdateCounter);
         if (customColor != null) {
-            compoundTag.putString("customColor", customColor);
+            compoundTag.putInt("customColor", customColor);
         }
     }
 
@@ -105,7 +105,7 @@ public class Gateway extends Portal {
 
         GatewayRecord record = GatewayRecord.get();
         GatewayRecord.GatewayInfo thisSideInfo = record.data.get(id);
-        GatewayRecord.GatewayInfo otherSideInfo = record.data.get(id.getTheOtherSide());
+        GatewayRecord.GatewayInfo otherSideInfo = record.data.get(id.flip());
         if (thisSideInfo == null) {
             // info is missing
             GatewayGunMod.LOGGER.info("Info missing!");
@@ -183,12 +183,8 @@ public class Gateway extends Portal {
         );
     }
 
-    public String getColor() {
-        if (customColor != null) {
-            return customColor;
-        }
-
-        return this.id.side().getColorString();
+    public int getColor() {
+        return customColor == null ? this.id.side().getDefaultColor() : customColor;
     }
 
 }

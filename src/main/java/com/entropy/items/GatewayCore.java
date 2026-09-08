@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import static com.entropy.items.GatewayGunComponents.GATEWAY_DATA;
 
 public class GatewayCore extends Item implements GeoItem {
-
     public final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this, true);
 
     private static final RawAnimation SPIN_ANIM = RawAnimation.begin().thenLoop("idle");

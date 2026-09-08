@@ -3,7 +3,6 @@ package com.entropy.client.renderer;
 import com.entropy.CoreData;
 import com.entropy.GatewayGunMod;
 import com.entropy.items.GatewayCore;
-import com.entropy.misc.GatewayGunUtils;
 import net.minecraft.client.gl.Uniform;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -29,12 +28,12 @@ public class GatewayCoreRenderer extends GeoItemRenderer<GatewayCore> {
         addRenderLayer(new GeoRenderLayer<>(this) {
             @Override
             public void render(MatrixStack poseStack, GatewayCore animatable, BakedGeoModel bakedModel, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-                Color color1 = new Color(GatewayGunUtils.hexToInt(defaultColor1));
-                Color color2 = new Color(GatewayGunUtils.hexToInt(defaultColor2));
+                Color color1 = new Color(defaultColor1);
+                Color color2 = new Color(defaultColor2);
                 CoreData data = currentItemStack.get(GATEWAY_DATA);
                 if (data != null) {
-                    color1 = new Color(GatewayGunUtils.hexToInt(data.color1()));
-                    color2 = new Color(GatewayGunUtils.hexToInt(data.color2()));
+                    color1 = new Color(data.color1());
+                    color2 = new Color(data.color2());
                     switch (data.restrictSide()) {
                         case ONE -> color2 = color1;
                         case TWO -> color1 = color2;

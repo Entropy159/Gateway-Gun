@@ -4,7 +4,6 @@ import com.entropy.GatewayGunConfig;
 import com.entropy.client.GatewayGunClient;
 import com.entropy.client.renderer.models.GatewayOverlayModel;
 import com.entropy.entity.Gateway;
-import com.entropy.misc.GatewayGunUtils;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -55,7 +54,7 @@ public class GatewayEntityRenderer extends EntityRenderer<Gateway> {
 
         matrices.scale(scale1, scale2, scale3);
 
-        Color color = new Color(GatewayGunUtils.hexToInt(entity.getColor()));
+        Color color = new Color(entity.getColor());
 
         float r = color.getRed() / 255F;
         float g = color.getGreen() / 255F;

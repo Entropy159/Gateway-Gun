@@ -29,7 +29,7 @@ public class GatewayGunUtils {
     public static void placeGateway(ServerWorld world, Vec3d pos, Vec3d up, Vec3d right, CoreData data, GatewayRecord.GatewaySide side, IntBox area, IntBox wall, boolean blockPredicate) {
         GatewayRecord record = GatewayRecord.get();
         GatewayRecord.GatewayID id = new GatewayRecord.GatewayID(data.code(), side);
-        GatewayRecord.GatewayID otherSideId = id.getTheOtherSide();
+        GatewayRecord.GatewayID otherSideId = id.flip();
         GatewayRecord.GatewayInfo thisSideInfo = record.data.get(id);
         GatewayRecord.GatewayInfo otherSideInfo = record.data.get(otherSideId);
         Gateway gateway;
@@ -62,7 +62,7 @@ public class GatewayGunUtils {
         gateway.otherSideUpdateCounter = otherSideInfo == null ? 0 : otherSideInfo.updateCounter();
         PortalManipulation.makePortalRound(gateway, 50);
         gateway.disableDefaultAnimation();
-        gateway.customColor = data.getColor(side);
+        gateway.customColor = data.getCustomColor(side);
         gateway.setTeleportChangesGravity(data.gravity());
 
         if (otherSideInfo == null) {
@@ -109,14 +109,5 @@ public class GatewayGunUtils {
             return portalRaytrace(world, op.get().getFirst().transformPoint(op.get().getSecond().hitPos()), op.get().getFirst().transformPoint(end), portals);
         }
         return new PortalRTResult(portals, end);
-    }
-
-    public static int hexToInt(String hex) {
-        try {
-            return Integer.parseUnsignedInt(hex, 16);
-        } catch (NumberFormatException exception) {
-            GatewayGunMod.LOGGER.error(exception.getMessage());
-            return 0;
-        }
     }
 }

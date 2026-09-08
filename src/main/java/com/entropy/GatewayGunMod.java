@@ -42,6 +42,7 @@ import org.apache.logging.log4j.Logger;
 import qouteall.q_misc_util.api.McRemoteProcedureCall;
 import qouteall.q_misc_util.my_util.IntBox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -136,11 +137,10 @@ public class GatewayGunMod implements ModInitializer {
                 CoreData data = CoreData.get(player.getMainHandStack(), true);
                 String col = getString(ctx, "color");
                 try {
-                    Integer.parseUnsignedInt(col, 16);
+                    data = data.withColor1(Integer.parseUnsignedInt(col, 16));
                 } catch (NumberFormatException e) {
                     throw BAD_COLOR.create();
                 }
-                data = data.withColor1(col);
                 player.getMainHandStack().set(GATEWAY_DATA, data);
                 player.sendMessage(Text.literal("Color 1 set to " + data.color1()), true);
                 return Command.SINGLE_SUCCESS;
@@ -151,11 +151,10 @@ public class GatewayGunMod implements ModInitializer {
                 CoreData data = CoreData.get(player.getMainHandStack(), true);
                 String col = getString(ctx, "color");
                 try {
-                    Integer.parseUnsignedInt(col, 16);
+                    data = data.withColor2(Integer.parseUnsignedInt(col, 16));
                 } catch (NumberFormatException e) {
                     throw BAD_COLOR.create();
                 }
-                data = data.withColor2(col);
                 player.getMainHandStack().set(GATEWAY_DATA, data);
                 player.sendMessage(Text.literal("Color 2 set to " + data.color2()), true);
                 return Command.SINGLE_SUCCESS;
@@ -232,7 +231,7 @@ public class GatewayGunMod implements ModInitializer {
                     throw BAD_BLOCK.create();
                 }
                 String block = op.get().getValue().toString();
-                List<String> blocks = data.allowedBlocks().list();
+                List<String> blocks = new ArrayList<>(data.allowedBlocks().list());
                 blocks.add(block);
                 data = data.withBlockList(new BlockList(blocks));
                 player.getMainHandStack().set(GATEWAY_DATA, data);
@@ -248,7 +247,7 @@ public class GatewayGunMod implements ModInitializer {
                     throw BAD_BLOCK.create();
                 }
                 String block = op.get().getValue().toString();
-                List<String> blocks = data.allowedBlocks().list();
+                List<String> blocks = new ArrayList<>(data.allowedBlocks().list());
                 blocks.remove(block);
                 data = data.withBlockList(new BlockList(blocks));
                 player.getMainHandStack().set(GATEWAY_DATA, data);
@@ -259,7 +258,7 @@ public class GatewayGunMod implements ModInitializer {
         })))).then(literal("side").then(argument("side", string()).suggests(new SideSuggestionProvider(false, true)).executes(ctx -> {
             if (ctx.getSource().getEntity() instanceof PlayerEntity player && player.getMainHandStack().getItem() instanceof GatewayCore) {
                 CoreData data = CoreData.get(player.getMainHandStack(), true);
-                data = data.withRestrictSide(GatewayRecord.GatewaySide.fromString(getString(ctx, "side")));
+                data = data.withRestrictSide(GatewayRecord.GatewaySide.valueOf(getString(ctx, "side")));
                 if ("NONE".equals(getString(ctx, "side"))) {
                     data = data.withRestrictSide(null);
                 }
@@ -322,8 +321,8 @@ public class GatewayGunMod implements ModInitializer {
             entries.add(new CoreData(new BlockList(List.of("minecraft:quartz_block"))).toStack(GATEWAY_GUN));
             entries.add(new CoreData(new BlockList(List.of("minecraft:quartz_block"))).toStack(GATEWAY_CORE));
 
-            entries.add(new CoreData(BlockList.createDefault(), "005ddf", "ee7f1b", false, null).toStack(GATEWAY_GUN));
-            entries.add(new CoreData(BlockList.createDefault(), "005ddf", "ee7f1b", false, null).toStack(GATEWAY_CORE));
+            entries.add(new CoreData(BlockList.createDefault(), 0x005ddf, 0xee7f1b, false, null).toStack(GATEWAY_GUN));
+            entries.add(new CoreData(BlockList.createDefault(), 0x005ddf, 0xee7f1b, false, null).toStack(GATEWAY_CORE));
 
             entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, GatewayRecord.GatewaySide.ONE).toStack(GATEWAY_GUN));
             entries.add(new CoreData(BlockList.createDefault(), defaultColor1, defaultColor2, false, GatewayRecord.GatewaySide.ONE).toStack(GATEWAY_CORE));

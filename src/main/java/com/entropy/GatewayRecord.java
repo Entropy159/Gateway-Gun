@@ -27,21 +27,14 @@ public class GatewayRecord extends PersistentState {
         ONE, // left click
         TWO; // right click
 
-        public static GatewaySide fromString(String c) {
-            if ("TWO".equals(c)) {
-                return TWO;
-            }
-            return ONE;
-        }
-
-        public GatewaySide getTheOtherSide() {
+        public GatewaySide flip() {
             return switch (this) {
                 case TWO -> ONE;
                 case ONE -> TWO;
             };
         }
 
-        public String getColorString() {
+        public int getDefaultColor() {
             return switch (this) {
                 case ONE -> defaultColor1;
                 case TWO -> defaultColor2;
@@ -58,11 +51,11 @@ public class GatewayRecord extends PersistentState {
         }
 
         public static GatewayID fromTag(NbtCompound tag) {
-            return new GatewayID(tag.getInt("code"), GatewaySide.fromString(tag.getString("side")));
+            return new GatewayID(tag.getInt("code"), GatewaySide.valueOf(tag.getString("side")));
         }
 
-        public GatewayID getTheOtherSide() {
-            return new GatewayID(code, side.getTheOtherSide());
+        public GatewayID flip() {
+            return new GatewayID(code, side.flip());
         }
 
         @Override

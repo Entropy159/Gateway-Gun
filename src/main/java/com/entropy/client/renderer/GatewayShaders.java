@@ -33,7 +33,7 @@ public class GatewayShaders extends RenderLayer {
     public static RenderLayer gateway() {
         MultiPhaseParameters rendertype$state = MultiPhaseParameters.builder()
                 .program(gatewayShard)
-                .texture(new Texture(GatewayGunMod.id("textures/entity/gateway.png"), false, false))
+                .texture(new Texture(GatewayGunMod.id("textures/entity/gateway_closed.png"), false, false))
                 .transparency(TRANSLUCENT_TRANSPARENCY)
                 .cull(DISABLE_CULLING)
                 .writeMaskState(COLOR_MASK)
